@@ -41,7 +41,7 @@ COMPANIES = [
     ("Thinking Machines", "#6d28d9", ["thinking machines", "thinking machine"], "us"),
     ("深度求索", "#e11d48", ["deepseek", "深度求索"], "cn"),
     ("百度",     "#2932e1", ["百度", "文心", "ernie", "千帆"], "cn"),
-    ("阿里",     "#ff6a00", ["阿里", "通义", "qwen", "千问"], "cn"),
+    ("阿里",     "#ff6a00", ["阿里", "通义", "qwen", "千问", "高德"], "cn"),
     ("腾讯",     "#12b7f5", ["腾讯", "混元", "元宝", "hunyuan"], "cn"),
     ("字节",     "#fe2c55", ["字节", "豆包", "coze", "扣子"], "cn"),
     ("智谱",     "#0ea5e9", ["智谱", "chatglm", "zhipu", "glm"], "cn"),
@@ -66,10 +66,14 @@ MODELS = [
     ("GPT-4o",    "OpenAI",    ["gpt-4o", "gpt4o", "gpt-4"]),
     ("o3 / o4",   "OpenAI",    ["o3", "o4", "openai o"]),
     ("Sora",      "OpenAI",    ["sora"]),
+    ("Bidi",      "OpenAI",    ["bidi"]),
+    ("GPT-Live",  "OpenAI",    ["gpt-live", "gpt live", "gpt‑live"]),
+    ("GPT-Realtime", "OpenAI", ["gpt-realtime", "实时翻译"]),
     ("Claude",    "Anthropic", ["claude"]),
     ("Gemini",    "Google",    ["gemini"]),
     ("Gemma",     "Google",    ["gemma"]),
     ("Veo",       "Google",    ["veo"]),
+    ("Magenta",   "Google",    ["magenta", "mrt2"]),
     ("Llama",     "Meta",      ["llama"]),
     ("Copilot",   "Microsoft", ["copilot"]),
     ("Orca",      "Microsoft", ["orca"]),
@@ -78,7 +82,10 @@ MODELS = [
     ("DeepSeek",  "深度求索",  ["deepseek", "深度求索"]),
     ("文心 ERNIE","百度",       ["文心", "ernie", "千帆"]),
     ("通义千问",  "阿里",       ["通义", "qwen", "千问", "wan", "万相"]),
+    ("HappyHorse","阿里",       ["happyhorse", "HappyHorse"]),
+    ("ABot-Earth","阿里",       ["abot-earth", "abot"]),
     ("混元",      "腾讯",       ["混元", "hunyuan", "元宝"]),
+    ("Hy-MT",     "腾讯",       ["hy-mt", "hy mt"]),
     ("豆包",      "字节",       ["豆包", "doubao"]),
     ("即梦",      "字节",       ["即梦", "jimeng"]),
     ("Seedance",  "字节",       ["seedance"]),   # 文生视频，单独成行 + 重大更新红色高亮
@@ -96,6 +103,7 @@ MODELS = [
     # ── NVIDIA ──
     ("Nemotron",   "NVIDIA",    ["nemotron"]),
     ("Cosmos",     "NVIDIA",    ["cosmos"]),
+    ("SANA",       "NVIDIA",    ["sana"]),
     # ── 其它实验室基础 / 生成模型（daily-feed 归类用）──
     ("Seed",       "字节",       ["seed"]),
     ("Muse",       "Meta",      ["muse"]),
@@ -112,10 +120,11 @@ FAMILY = {
     "GPT-4.1": "GPT", "gpt-oss": "GPT", "ChatGPT": "GPT", "GPT-5": "GPT",
     "GPT-5.1": "GPT", "GPT-5.2": "GPT", "GPT-5.4": "GPT", "GPT-5.5": "GPT", "GPT-5.6": "GPT",
     "o3 / o4": "OpenAI o 系列", "Sora": "Sora", "Sora 2": "Sora", "DALL·E 3": "DALL·E",
+    "Bidi": "Bidi", "GPT-Live": "GPT-Live", "GPT-Realtime": "GPT-Realtime",
     # Anthropic
     "Claude": "Claude",
     # Google
-    "Gemini": "Gemini", "Gemma": "Gemma", "Veo": "Veo", "Bard": "Gemini",
+    "Gemini": "Gemini", "Gemma": "Gemma", "Veo": "Veo", "Bard": "Gemini", "Magenta": "Magenta",
     # Meta
     "Llama": "Llama",
     # xAI
@@ -128,9 +137,9 @@ FAMILY = {
     # 百度
     "文心 ERNIE": "文心 ERNIE",
     # 阿里
-    "通义千问": "通义千问 Qwen",
+    "通义千问": "通义千问 Qwen", "HappyHorse": "HappyHorse", "ABot-Earth": "ABot-Earth",
     # 腾讯
-    "混元": "混元",
+    "混元": "混元", "Hy-MT": "Hy-MT",
     # 字节
     "豆包": "豆包", "即梦": "即梦", "Seedance": "Seedance", "Coze 扣子": "Coze 扣子",
     # 智谱
@@ -151,7 +160,7 @@ FAMILY = {
     # 讯飞星火
     "星火": "星火",
     # NVIDIA
-    "Nemotron": "Nemotron 系列", "Cosmos": "Cosmos",
+    "Nemotron": "Nemotron 系列", "Cosmos": "Cosmos", "SANA": "SANA",
     # 其它实验室
     "Seed": "Seed", "Muse": "Muse", "MAI": "MAI",
 }
@@ -1602,9 +1611,14 @@ _MODEL_VERSION_RE = re.compile(r"(?:v|V)?\d+\.\d+(?:\.\d+)?|\d+\.\d+\s*(?:版本
                                r"(?:gpt|claude|gemini|llama|grok|glm|kimi|qwen|ernie|mixtral|mistral|nova|titan|abab|baichuan|spark|deepseek)[- ]?\d", re.I)
 _MODEL_TYPE_KW = ["大模型", "模型", "moE", "moe", "基座", "多模态", "推理模型", "语言模型",
                   "开源模型", "视频模型", "图像模型", "声音模型", "语音模型", "文生", "图生"]
+# 标题级黑名单：含以下短语者即便命中“模型/发布”也非「模型发布/版本更新」（产品 App / 智能体 / 博文等）
+_MODEL_RELEASE_BLACKLIST = ["chatgpt work", "最强模型与最佳博文", "最佳博文",
+                            "app 上线", "app上线", "智能体 app", "agent app"]
 def is_pure_model_release(title):
     t = title or ""
     tl = t.lower()
+    if any(k in tl for k in _MODEL_RELEASE_BLACKLIST):
+        return False
     if any(k in t for k in _GANT_SKIP_KW):      # 融资/收购/榜单…
         return False
     if any(k in tl for k in _MODEL_RELEASE_HARD):
