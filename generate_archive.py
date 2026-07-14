@@ -1213,11 +1213,14 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
     .filter(b=> b[1]<=maxYear && b[2]>=minYear)
     .map(b=>{ const y0=Math.max(b[1],minYear), y1=Math.min(b[2],maxYear); return {label:b[0], y0, y1}; })
     .sort((a,b)=>a.y0-b.y0);
+  const RECENT_BOOST=2.6;   // 最新（最右）分组横向加权倍数：使其占满大部分轨道，事件点得以展开；后续更新越多占比越大
   const bandUnits={}; let totalUnits=0; const cumBeforeB={};
-  BANDS.forEach(b=>{
+  BANDS.forEach((b,i)=>{
     cumBeforeB[b.label]=totalUnits;
     let cnt=0; for(let y=b.y0;y<=b.y1;y++) cnt += (yearCounts[String(y)]||0);
-    const w=cnt+RATE_BASE; bandUnits[b.label]=w; totalUnits+=w;
+    let w=cnt+RATE_BASE;
+    if(i===BANDS.length-1) w = cnt*RECENT_BOOST + RATE_BASE;   // 最新分组（如 2026）占满轨道，点分散展开
+    bandUnits[b.label]=w; totalUnits+=w;
   });
   // 视图：viewStart=内容空间起点(单位)，viewUnits=可见内容跨度(单位)
   let viewStart=0, viewUnits=totalUnits;
@@ -1313,9 +1316,10 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
       if(x1<L-1 || x0>W-R+1) return;                      // 完全在视野外
       if(x0>=L-1) h+=`<line x1="${x0.toFixed(1)}" y1="${T}" x2="${x0.toFixed(1)}" y2="${plotBottom.toFixed(1)}" stroke="#e3e6ee"/>`;
       const wpx=x1-x0;
-      if(wpx>14){                                  // 列足够宽才显示标签，避免拥挤
+      if(wpx>12){                                  // 列足够宽才显示标签，避免拥挤
         const xc=(x0+x1)/2;
-        h+=`<text x="${xc.toFixed(1)}" y="${(T-4).toFixed(1)}" text-anchor="middle" font-size="11" font-weight="800" fill="#6b7280">${b.label}</text>`;
+        const fs = wpx<24 ? 9 : 11;                // 窄列用更小字号，保证「2020–2022」等长标签可读
+        h+=`<text x="${xc.toFixed(1)}" y="${(T-4).toFixed(1)}" text-anchor="middle" font-size="${fs}" font-weight="800" fill="#6b7280">${b.label}</text>`;
       }
     });
     // 月份细线：仅在放大到足够窄（≤约半个内容跨度，≈3 年）时显示，避免拥挤
@@ -1328,12 +1332,20 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
     rows.forEach(r=>{ if(r.type!=="m") return;
       const m=r.m, y0=rowY[m.company+"|"+m.name], cy=y0+rowH/2; let lastX=-999;
       const mH = markerMode==="dot" ? 0 : (markerMode==="bar" ? Math.round(rowH*0.6) : 15);
-      const gap = markerMode==="dot" ? 11 : (markerMode==="bar" ? 7 : 13);
-      visibleEvents(m).forEach(e=>{
+      const gapBase = markerMode==="dot" ? 11 : (markerMode==="bar" ? 7 : 13);
+      const vis=visibleEvents(m);
+      // 自适应间距：让该行事件在其实际跨越的横向范围内尽量铺开（首/尾对齐真实日期，中间均摊），
+      // 既「把点分散到整个轨道」又避免挤成一团或越界被丢弃导致数据丢失。
+      let minX=Infinity, maxX=-Infinity;
+      vis.forEach(e=>{ const xx=xAtDate(e.date); if(xx<minX)minX=xx; if(xx>maxX)maxX=xx; });
+      const span=(isFinite(minX)&&isFinite(maxX))?(maxX-minX):0;
+      const gap = vis.length>1 ? Math.max(2, Math.min(gapBase, span/(vis.length-1))) : gapBase;
+      vis.forEach(e=>{
         let x=xAtDate(e.date);
         if(Math.abs(x-lastX)<gap) x=lastX+gap;
         lastX=x;
-        if(x<L-10||x>W-R+10) return;
+        if(x<L-10) return;                  // 仅左侧越界跳过；右侧不再丢弃（贴边绘制，保证数据不丢失）
+        if(x>W-R+10) x=W-R+10;
         const col = (e.kind==="model" && e.major) ? MAJOR : kindColor[e.kind];
         const j=JSON.stringify({t:e.title,d:e.date,k:e.kind,s:e.source,f:e.file})
           .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
