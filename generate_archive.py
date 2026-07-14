@@ -1092,7 +1092,7 @@ INDEX_TPL = r"""<!DOCTYPE html>
   <section class="gantt wrap">
     <div class="trend-head">
       <h2>🗓️ 主要 AI 公司 模型发布 / 版本更新 时间线</h2>
-      <p class="trend-sub">上方为🇺🇸美国公司、中间为🇨🇳中国公司、底部为🇫🇷法国公司；<b>纯模型视角</b>——仅收录「模型发布 / 版本更新」，不含产品 App、技术报告、模型登陆平台等非发布类事件。<b>每个模型单独一行</b>（如某公司有 2 个模型则分行），横向为日期。🔵蓝=模型发布，🔴红=重大模型更新（如 GPT-5、Gemini 3、Llama 5 等）。每行左侧数字为该模型事件数；<b>模型行按 LMArena 评分降序排列</b>，每行最右为「评分条 + 该系列最强公开版本的 Arena Elo 分」，无公开可比分数者显示「—」（如视频/图像/未公开独立评分的模型）；滚轮缩放、拖动平移、悬停看详情。历史基线（2020–2024）来自经网络核实的发布日，2025 起自动同步 AI HOT 每日日报「模型发布/更新」版块，新模型发布即自动入图。</p>
+      <p class="trend-sub">🇺🇸美国 / 🇨🇳中国 / 🇫🇷法国 三阵营分块，每个模型单独成行，横向为日期。🔵蓝=模型发布，🔴红=重大更新；<b>纯模型视角</b>——仅收录模型发布 / 版本更新，不含产品 App、技术报告、登陆平台等非发布类事件。模型行按 LMArena 评分降序排列，行尾「评分条 + Arena Elo」为该系列最强公开版本分数（无公开分数者显示「—」）；行首数字为该模型事件数。历史基线（2020–2024）经网络核实，2025 起自动同步 AI HOT 每日日报「模型发布/更新」版块，新模型发布即自动入图。</p>
     </div>
     <div class="gantt-ctrl">
       <button class="gbtn active" data-kind="model">🔵 模型发布</button>
@@ -1368,11 +1368,10 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
       if(x1<L-1 || x0>W-R+1) return;                      // 完全在视野外
       if(x0>=L-1) h+=`<line x1="${x0.toFixed(1)}" y1="${T}" x2="${x0.toFixed(1)}" y2="${plotBottom.toFixed(1)}" stroke="#e3e6ee"/>`;
       const wpx=x1-x0;
-      const long=b.label.length>=5;                       // 「2022年前」等长标签用更小字号
       if(wpx>10){                                  // 列足够宽才显示标签，避免拥挤
-        const fs = long ? 9 : 11;
-        const anchor = (i===0 && long) ? "start" : "middle";   // 前置长标签左对齐，避免越界压到下一分组
-        const xc = (i===0 && long) ? (x0+3) : (x0+x1)/2;
+        const fs = 11;                             // 所有年份标签统一字号（含「2022年前」），与后续年份一致
+        const anchor = (i===0) ? "start" : "middle";   // 前置长标签左对齐，避免越界压到下一分组
+        const xc = (i===0) ? (x0+3) : (x0+x1)/2;
         h+=`<text x="${xc.toFixed(1)}" y="${(T-4).toFixed(1)}" text-anchor="${anchor}" font-size="${fs}" font-weight="800" fill="#6b7280">${b.label}</text>`;
       }
     });

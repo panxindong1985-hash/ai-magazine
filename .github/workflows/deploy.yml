@@ -40,6 +40,23 @@ jobs:
             python generate_archive.py
           fi
 
+      # schedule / 手动触发时，把抓取产生的新日报与更新后的 archive.json 提交回仓库，
+      # 否则新数据只存在于临时 runner、不会持久化，下次又从头抓取（甘特图无法自动更新）。
+      - name: Commit updated archive & dailies
+        if: ${{ github.event_name != 'push' }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add archive.json index.html ai-daily.html
+          # 同时纳入可能新增的日报页
+          git add "ai-daily-*.html" 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo "无变化，跳过提交"
+          else
+            git commit -m "chore: 自动同步 AI HOT 日报（$(date -u +%Y-%m-%dT%H:%M:%SZ)）"
+            git push
+          fi
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
