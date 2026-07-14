@@ -98,7 +98,8 @@ FAMILY = {
     # OpenAI
     "GPT-3": "GPT", "GPT-4": "GPT", "GPT-4o": "GPT", "GPT-4.5": "GPT",
     "GPT-4.1": "GPT", "gpt-oss": "GPT", "ChatGPT": "GPT", "GPT-5": "GPT",
-    "o3 / o4": "OpenAI o 系列", "Sora": "Sora", "DALL·E 3": "DALL·E",
+    "GPT-5.1": "GPT", "GPT-5.2": "GPT", "GPT-5.4": "GPT", "GPT-5.5": "GPT", "GPT-5.6": "GPT",
+    "o3 / o4": "OpenAI o 系列", "Sora": "Sora", "Sora 2": "Sora", "DALL·E 3": "DALL·E",
     # Anthropic
     "Claude": "Claude",
     # Google
@@ -133,7 +134,7 @@ FAMILY = {
     # 百川
     "Baichuan": "Baichuan",
     # MiniMax
-    "abab": "MiniMax 系列",
+    "abab": "MiniMax 系列", "M2.5": "MiniMax 系列",
     # 讯飞星火
     "星火": "星火",
 }
@@ -193,8 +194,9 @@ RATINGS = {
 
 # ── 历史里程碑（2020–2026 模型发布 / 重大产品版本更新）───────────────────────
 # 经网络核实的主要 AI 模型与产品发布时间线；仅收录「模型发布」与「产品版本更新」，
-# 不收录融资 / 合作 / 研究论文 / 榜单等非发布类事件。
-# 字段：d=日期, c=公司(须匹配 COMPANIES), m=模型/产品名(与 daily-feed 行对齐),
+# 不收录融资 / 合作 / 研究论文（技术报告）/ 模型登陆平台 / 榜单等非发布类事件。
+# 本表是甘特时间线的唯一数据源（不再从每日日报抓取，杜绝污染）。
+# 字段：d=日期, c=公司(须匹配 COMPANIES), m=模型/产品名(须命中 FAMILY 归族键),
 #       k=model|product, t=标题, major=是否重大发布(时间线红色高亮), src=来源。
 MILESTONES = [
     # ── OpenAI ──
@@ -207,9 +209,15 @@ MILESTONES = [
     {"d":"2024-12-05","c":"OpenAI","m":"o3 / o4","k":"model","t":"OpenAI o1 正式版发布","major":False,"src":"OpenAI"},
     {"d":"2024-12-09","c":"OpenAI","m":"Sora","k":"product","t":"Sora 视频生成模型公开发布","major":False,"src":"OpenAI"},
     {"d":"2025-02-27","c":"OpenAI","m":"GPT-4.5","k":"model","t":"GPT-4.5 发布","major":False,"src":"OpenAI"},
-    {"d":"2025-04-14","c":"OpenAI","m":"GPT-4o","k":"model","t":"GPT-4.1 系列发布（API，含 mini/nano）","major":False,"src":"OpenAI"},
-    {"d":"2025-08-05","c":"OpenAI","m":"GPT-4o","k":"model","t":"gpt-oss-120B/20B 开放权重发布","major":False,"src":"OpenAI"},
+    {"d":"2025-04-14","c":"OpenAI","m":"GPT-4.1","k":"model","t":"GPT-4.1 系列发布（API，含 mini/nano）","major":False,"src":"OpenAI"},
+    {"d":"2025-08-06","c":"OpenAI","m":"gpt-oss","k":"model","t":"gpt-oss-120B/20B 开放权重模型发布","major":False,"src":"OpenAI"},
     {"d":"2025-08-07","c":"OpenAI","m":"GPT-5","k":"model","t":"GPT-5 发布（整合 o3 推理，免费开放）","major":True,"src":"OpenAI"},
+    {"d":"2025-09-30","c":"OpenAI","m":"Sora 2","k":"model","t":"Sora 2 视频生成模型发布","major":True,"src":"OpenAI"},
+    {"d":"2025-11-13","c":"OpenAI","m":"GPT-5.1","k":"model","t":"GPT-5.1 发布（GPT-5 首个升级版）","major":True,"src":"OpenAI"},
+    {"d":"2025-12-11","c":"OpenAI","m":"GPT-5.2","k":"model","t":"GPT-5.2 发布（专业工作 / 长程智能体）","major":True,"src":"OpenAI"},
+    {"d":"2026-03-06","c":"OpenAI","m":"GPT-5.4","k":"model","t":"GPT-5.4 发布（前沿推理 / 编码 / Agent）","major":True,"src":"OpenAI"},
+    {"d":"2026-04-23","c":"OpenAI","m":"GPT-5.5","k":"model","t":"GPT-5.5 发布（专业复杂任务）","major":True,"src":"OpenAI"},
+    {"d":"2026-07-09","c":"OpenAI","m":"GPT-5.6","k":"model","t":"GPT-5.6（Sol/Terra/Luna 系列）发布","major":True,"src":"OpenAI"},
     # ── Anthropic ──
     {"d":"2023-03-14","c":"Anthropic","m":"Claude","k":"model","t":"Claude 1 首次公开发布","major":False,"src":"Anthropic"},
     {"d":"2023-07-11","c":"Anthropic","m":"Claude","k":"model","t":"Claude 2 发布（首个面向公众）","major":False,"src":"Anthropic"},
@@ -218,6 +226,12 @@ MILESTONES = [
     {"d":"2024-06-20","c":"Anthropic","m":"Claude","k":"model","t":"Claude 3.5 Sonnet 发布","major":False,"src":"Anthropic"},
     {"d":"2025-02-24","c":"Anthropic","m":"Claude","k":"model","t":"Claude 3.7 Sonnet 发布（混合推理）","major":False,"src":"Anthropic"},
     {"d":"2025-05-22","c":"Anthropic","m":"Claude","k":"model","t":"Claude 4（Opus / Sonnet）发布","major":True,"src":"Anthropic"},
+    {"d":"2025-11-24","c":"Anthropic","m":"Claude","k":"model","t":"Claude Opus 4.5 发布","major":True,"src":"Anthropic"},
+    {"d":"2026-02-05","c":"Anthropic","m":"Claude","k":"model","t":"Claude Opus 4.6 发布","major":True,"src":"Anthropic"},
+    {"d":"2026-02-17","c":"Anthropic","m":"Claude","k":"model","t":"Claude Sonnet 4.6 发布","major":False,"src":"Anthropic"},
+    {"d":"2026-04-16","c":"Anthropic","m":"Claude","k":"model","t":"Claude Opus 4.7 发布（编码 / 视觉增强）","major":True,"src":"Anthropic"},
+    {"d":"2026-05-28","c":"Anthropic","m":"Claude","k":"model","t":"Claude Opus 4.8 发布","major":True,"src":"Anthropic"},
+    {"d":"2026-06-30","c":"Anthropic","m":"Claude","k":"model","t":"Claude Sonnet 5 发布","major":True,"src":"Anthropic"},
     # ── Google ──
     {"d":"2023-03-21","c":"Google","m":"Bard","k":"product","t":"Bard 对话式 AI 产品发布","major":False,"src":"Google"},
     {"d":"2023-12-06","c":"Google","m":"Gemini","k":"model","t":"Gemini 1.0 发布（Ultra/Pro/Nano）","major":True,"src":"Google"},
@@ -229,7 +243,10 @@ MILESTONES = [
     {"d":"2025-02-05","c":"Google","m":"Gemini","k":"model","t":"Gemini 2.0 正式版（GA）","major":False,"src":"Google"},
     {"d":"2025-03-25","c":"Google","m":"Gemini","k":"model","t":"Gemini 2.5 Pro 实验版首秀","major":False,"src":"Google"},
     {"d":"2025-06-17","c":"Google","m":"Gemini","k":"model","t":"Gemini 2.5 Pro / Flash 全面开放（GA）","major":False,"src":"Google"},
-    {"d":"2025-11-18","c":"Google","m":"Gemini","k":"model","t":"Gemini 3 发布（Pro / Deep Think）","major":True,"src":"Google"},
+    {"d":"2025-11-17","c":"Google","m":"Gemini","k":"model","t":"Gemini 3 发布（Pro / Deep Think）","major":True,"src":"Google"},
+    {"d":"2025-11-17","c":"Google","m":"Veo","k":"model","t":"Veo 3.1 视频生成模型发布","major":False,"src":"Google"},
+    {"d":"2026-02-19","c":"Google","m":"Gemini","k":"model","t":"Gemini 3.1 Pro 发布","major":True,"src":"Google"},
+    {"d":"2026-04-02","c":"Google","m":"Gemma","k":"model","t":"Gemma 4 开放权重模型发布（Apache 2.0）","major":True,"src":"Google"},
     # ── Meta ──
     {"d":"2023-02-24","c":"Meta","m":"Llama","k":"model","t":"Llama 1 开源发布","major":False,"src":"Meta"},
     {"d":"2023-07-18","c":"Meta","m":"Llama","k":"model","t":"Llama 2 开源可商用发布","major":False,"src":"Meta"},
@@ -237,21 +254,31 @@ MILESTONES = [
     {"d":"2024-07-23","c":"Meta","m":"Llama","k":"model","t":"Llama 3.1 发布（405B 旗舰）","major":False,"src":"Meta"},
     {"d":"2024-09-25","c":"Meta","m":"Llama","k":"model","t":"Llama 3.2 发布（视觉/边缘模型）","major":False,"src":"Meta"},
     {"d":"2025-04-05","c":"Meta","m":"Llama","k":"model","t":"Llama 4 发布（MoE 原生多模态）","major":True,"src":"Meta"},
+    {"d":"2026-04-08","c":"Meta","m":"Llama","k":"model","t":"Llama 5 开源发布（600B MoE，5M 上下文）","major":True,"src":"Meta"},
     # ── xAI ──
     {"d":"2023-11-04","c":"xAI","m":"Grok","k":"model","t":"Grok 1 发布","major":False,"src":"xAI"},
     {"d":"2024-08-13","c":"xAI","m":"Grok","k":"model","t":"Grok 2 发布","major":False,"src":"xAI"},
     {"d":"2025-02-17","c":"xAI","m":"Grok","k":"model","t":"Grok 3 发布","major":True,"src":"xAI"},
+    {"d":"2025-07-09","c":"xAI","m":"Grok","k":"model","t":"Grok 4 发布（多智能体 / 原生工具）","major":True,"src":"xAI"},
+    {"d":"2025-11-19","c":"xAI","m":"Grok","k":"model","t":"Grok 4.1 发布（2M 上下文）","major":True,"src":"xAI"},
+    {"d":"2026-03-10","c":"xAI","m":"Grok","k":"model","t":"Grok 4.20 发布（低幻觉 / 推理可配）","major":True,"src":"xAI"},
+    {"d":"2026-04-30","c":"xAI","m":"Grok","k":"model","t":"Grok 4.3 发布（原生视频输入 / 1M 上下文）","major":True,"src":"xAI"},
     # ── DeepSeek（中国）──
     {"d":"2024-01-05","c":"深度求索","m":"DeepSeek","k":"model","t":"DeepSeek LLM 首个大模型发布","major":False,"src":"深度求索"},
     {"d":"2024-05-07","c":"深度求索","m":"DeepSeek","k":"model","t":"DeepSeek-V2 开源 MoE 模型发布","major":False,"src":"深度求索"},
     {"d":"2024-12-26","c":"深度求索","m":"DeepSeek","k":"model","t":"DeepSeek-V3 开源发布（6710亿参数）","major":True,"src":"深度求索"},
     {"d":"2025-01-20","c":"深度求索","m":"DeepSeek","k":"model","t":"DeepSeek-R1 推理模型开源发布","major":True,"src":"深度求索"},
+    {"d":"2025-08-21","c":"深度求索","m":"DeepSeek","k":"model","t":"DeepSeek-V3.1 发布（混合推理架构）","major":True,"src":"深度求索"},
+    {"d":"2025-12-01","c":"深度求索","m":"DeepSeek","k":"model","t":"DeepSeek-V3.2 发布（面向智能体）","major":True,"src":"深度求索"},
+    {"d":"2026-04-24","c":"深度求索","m":"DeepSeek","k":"model","t":"DeepSeek-V4 预览版发布（Pro/Flash，开放权重）","major":True,"src":"深度求索"},
     # ── Mistral（欧洲）──
     {"d":"2023-09-27","c":"Mistral","m":"Mistral 7B","k":"model","t":"Mistral 7B 开源发布（7.3B，Apache 2.0）","major":False,"src":"Mistral AI"},
     {"d":"2023-12-09","c":"Mistral","m":"Mixtral","k":"model","t":"Mixtral 8x7B 开源发布（首个开放 MoE 模型）","major":False,"src":"Mistral AI"},
     {"d":"2024-02-26","c":"Mistral","m":"Mistral Large","k":"model","t":"Mistral Large 发布（旗舰，对标 GPT-4）","major":True,"src":"Mistral AI"},
     {"d":"2024-07-24","c":"Mistral","m":"Mistral Large","k":"model","t":"Mistral Large 2 发布（开放权重）","major":True,"src":"Mistral AI"},
     {"d":"2025-01-30","c":"Mistral","m":"Mistral Small","k":"model","t":"Mistral Small 3 发布","major":False,"src":"Mistral AI"},
+    {"d":"2025-12-02","c":"Mistral","m":"Mistral Large","k":"model","t":"Mistral Large 3 发布","major":True,"src":"Mistral AI"},
+    {"d":"2026-04-28","c":"Mistral","m":"Mistral Large","k":"model","t":"Mistral 3 系列模型发布","major":True,"src":"Mistral AI"},
     # ── Amazon（美国）──
     {"d":"2023-04-13","c":"Amazon","m":"Titan","k":"model","t":"Amazon Titan 基础模型随 Bedrock 推出","major":False,"src":"Amazon"},
     {"d":"2024-12-02","c":"Amazon","m":"Nova","k":"model","t":"Amazon Nova 系列发布（Micro/Lite/Pro/Premier）","major":True,"src":"Amazon"},
@@ -265,6 +292,7 @@ MILESTONES = [
     # ── MiniMax（中国）──
     {"d":"2024-01-15","c":"MiniMax","m":"abab","k":"model","t":"MiniMax abab6 全量发布（国内首个 MoE 大模型）","major":False,"src":"MiniMax"},
     {"d":"2024-04-15","c":"MiniMax","m":"abab","k":"model","t":"MiniMax abab6.5 万亿参数 MoE 发布","major":False,"src":"MiniMax"},
+    {"d":"2026-02-11","c":"MiniMax","m":"M2.5","k":"model","t":"MiniMax M2.5 原生 Agent 生产级模型发布","major":True,"src":"MiniMax"},
     # ── 讯飞星火（中国）──
     {"d":"2023-05-06","c":"讯飞星火","m":"星火","k":"model","t":"讯飞星火大模型 V1.0 发布","major":True,"src":"科大讯飞"},
     {"d":"2023-10-24","c":"讯飞星火","m":"星火","k":"model","t":"讯飞星火 V3.0 发布","major":False,"src":"科大讯飞"},
@@ -275,28 +303,41 @@ MILESTONES = [
     {"d":"2023-10-17","c":"百度","m":"文心 ERNIE","k":"model","t":"文心大模型 4.0 发布","major":False,"src":"百度"},
     {"d":"2024-06-28","c":"百度","m":"文心 ERNIE","k":"model","t":"文心大模型 4.0 Turbo 发布","major":False,"src":"百度"},
     {"d":"2025-03-16","c":"百度","m":"文心 ERNIE","k":"model","t":"文心大模型 4.5 发布（原生多模态/深度思考）","major":False,"src":"百度"},
+    {"d":"2026-01-22","c":"百度","m":"文心 ERNIE","k":"model","t":"文心大模型 5.0 正式版发布（原生全模态）","major":True,"src":"百度"},
+    {"d":"2026-05-09","c":"百度","m":"文心 ERNIE","k":"model","t":"文心大模型 5.1 发布","major":True,"src":"百度"},
     # ── 阿里（中国）──
     {"d":"2023-04-11","c":"阿里","m":"通义千问","k":"model","t":"通义千问发布","major":False,"src":"阿里云"},
     {"d":"2024-06-07","c":"阿里","m":"通义千问","k":"model","t":"Qwen2 大模型开源发布","major":False,"src":"阿里云"},
     {"d":"2024-09-19","c":"阿里","m":"通义千问","k":"model","t":"Qwen2.5 发布","major":False,"src":"阿里云"},
     {"d":"2025-01-29","c":"阿里","m":"通义千问","k":"model","t":"Qwen2.5-Max 旗舰模型发布","major":False,"src":"阿里云"},
     {"d":"2025-04-29","c":"阿里","m":"通义千问","k":"model","t":"Qwen3 开源（混合推理模型）","major":True,"src":"阿里云"},
+    {"d":"2026-02-16","c":"阿里","m":"通义千问","k":"model","t":"Qwen3.5 旗舰大模型发布（开源）","major":True,"src":"阿里云"},
+    {"d":"2026-05-20","c":"阿里","m":"通义千问","k":"model","t":"Qwen3.7-Max 旗舰模型发布","major":True,"src":"阿里云"},
     # ── 智谱（中国）──
     {"d":"2023-03-15","c":"智谱","m":"智谱 GLM","k":"model","t":"ChatGLM 对话基座模型发布","major":False,"src":"智谱"},
     {"d":"2024-01-16","c":"智谱","m":"智谱 GLM","k":"model","t":"GLM-4 基座大模型发布","major":False,"src":"智谱"},
     {"d":"2025-07-28","c":"智谱","m":"智谱 GLM","k":"model","t":"GLM-4.5 开源旗舰模型发布","major":False,"src":"智谱"},
+    {"d":"2025-09-30","c":"智谱","m":"智谱 GLM","k":"model","t":"GLM-4.6 发布","major":False,"src":"智谱"},
+    {"d":"2025-12-22","c":"智谱","m":"智谱 GLM","k":"model","t":"GLM-4.7 发布","major":False,"src":"智谱"},
+    {"d":"2026-02-11","c":"智谱","m":"智谱 GLM","k":"model","t":"GLM-5 旗舰通用大模型发布","major":True,"src":"智谱"},
+    {"d":"2026-04-08","c":"智谱","m":"智谱 GLM","k":"model","t":"GLM-5.1 发布","major":True,"src":"智谱"},
     # ── 月之暗面（中国）──
     {"d":"2023-10-09","c":"月之暗面","m":"Kimi","k":"product","t":"Kimi 智能助手发布（20万汉字上下文）","major":False,"src":"月之暗面"},
     {"d":"2025-01-20","c":"月之暗面","m":"Kimi","k":"model","t":"Kimi K1.5 多模态思考模型发布","major":False,"src":"月之暗面"},
     {"d":"2025-07-11","c":"月之暗面","m":"Kimi","k":"model","t":"Kimi K2 开源发布（万亿参数 MoE）","major":True,"src":"月之暗面"},
+    {"d":"2026-01-27","c":"月之暗面","m":"Kimi","k":"model","t":"Kimi K2.5 开源多模态代理大模型发布","major":True,"src":"月之暗面"},
+    {"d":"2026-04-20","c":"月之暗面","m":"Kimi","k":"model","t":"Kimi K2.6 发布","major":True,"src":"月之暗面"},
     # ── 字节（中国）──
     {"d":"2023-08-17","c":"字节","m":"豆包","k":"product","t":"豆包（云雀）AI 对话产品公测","major":False,"src":"字节"},
     {"d":"2024-05-15","c":"字节","m":"豆包","k":"model","t":"豆包大模型正式发布","major":False,"src":"字节"},
     {"d":"2025-06-11","c":"字节","m":"豆包","k":"model","t":"豆包大模型 1.6 / Seedance 1.0 发布","major":False,"src":"字节"},
-    {"d":"2026-02-14","c":"字节","m":"豆包","k":"model","t":"豆包大模型 2.0 发布","major":False,"src":"字节"},
+    {"d":"2026-02-12","c":"字节","m":"Seedance","k":"model","t":"Seedance 2.0 视频生成大模型发布","major":True,"src":"字节"},
+    {"d":"2026-02-14","c":"字节","m":"豆包","k":"model","t":"豆包大模型 2.0 全系列发布","major":True,"src":"字节"},
     # ── 腾讯（中国）──
     {"d":"2023-09-07","c":"腾讯","m":"混元","k":"model","t":"腾讯混元大模型正式亮相","major":False,"src":"腾讯"},
     {"d":"2024-05-30","c":"腾讯","m":"混元","k":"product","t":"腾讯元宝 App 上线","major":False,"src":"腾讯"},
+    {"d":"2026-04-23","c":"腾讯","m":"混元","k":"model","t":"腾讯混元 Hy3 预览版发布","major":False,"src":"腾讯"},
+    {"d":"2026-07-06","c":"腾讯","m":"混元","k":"model","t":"腾讯混元 Hy3 正式版发布","major":True,"src":"腾讯"},
     # ── Microsoft（美国）──
     {"d":"2023-03-16","c":"Microsoft","m":"Copilot","k":"product","t":"Microsoft 365 Copilot 发布","major":False,"src":"Microsoft"},
     {"d":"2024-05-21","c":"Microsoft","m":"Copilot","k":"product","t":"Copilot+ PC / Copilot Studio 发布","major":False,"src":"Microsoft"},
@@ -1052,7 +1093,7 @@ INDEX_TPL = r"""<!DOCTYPE html>
   <section class="gantt wrap">
     <div class="trend-head">
       <h2>🗓️ 主要 AI 公司 模型 / 产品 更新时间线</h2>
-      <p class="trend-sub">上方为🇺🇸美国公司、下方为🇨🇳中国公司；<b>每个模型单独一行</b>（如某公司有 2 个模型则分行），横向为日期。🔵蓝=模型发布，🟢绿=产品更新，🔴红=重大模型更新（如 Seedance 2.0 文生视频、GPT-5、Gemini 2.0 等）。产品默认仅显示重大发布（点版本号、常规功能增量、指南类已自动隐藏，可关闭「⚡仅重要」看全部）。每行左侧数字为该模型事件数；<b>模型行按 LMArena 评分降序排列</b>，每行最右为「评分条 + 该系列最强公开版本的 Arena Elo 分」，无公开可比分数者显示「—」（如视频/图像/未公开独立评分的产品）；滚轮缩放、拖动平移、悬停看详情、点击跳转当日日报 · 事件日期取自日报报道日</p>
+      <p class="trend-sub">上方为🇺🇸美国公司、中间为🇨🇳中国公司、底部为🇪🇺欧洲公司；<b>每个模型单独一行</b>（如某公司有 2 个模型则分行），横向为日期。🔵蓝=模型发布，🟢绿=产品更新，🔴红=重大模型更新（如 Seedance 2.0 文生视频、GPT-5、Gemini 2.0 等）。产品默认仅显示重大发布（点版本号、常规功能增量、指南类已自动隐藏，可关闭「⚡仅重要」看全部）。每行左侧数字为该模型事件数；<b>模型行按 LMArena 评分降序排列</b>，每行最右为「评分条 + 该系列最强公开版本的 Arena Elo 分」，无公开可比分数者显示「—」（如视频/图像/未公开独立评分的产品）；滚轮缩放、拖动平移、悬停看详情 · 事件日期为经网络核实的官方发布日（2020 起）</p>
     </div>
     <div class="gantt-ctrl">
       <button class="gbtn active" data-kind="model">🔵 模型发布</button>
@@ -1492,67 +1533,17 @@ def render_day(day):
 _GANT_SKIP_KW = ["融资", "收购", "并购", "财报", "上市", "诉讼", "监管", "处罚",
                  "招聘", "离职", "人事变动", "获奖", "榜单", "排名", "论坛", "大会", "协会"]
 
-def compute_gantt(arch, top_n=GANTT_TOP_N):
-    """甘特式时间线：取「模型发布/更新」与「产品发布/更新」版块条目，按 (公司 → 模型) 逐模型分行；
-    模型事件命中「重大版本/发布」高亮（major=True，前端红色块）。
+def compute_gantt(arch=None, top_n=GANTT_TOP_N):
+    """甘特式时间线：基于「经网络核实」的模型发布 / 版本更新里程碑（MILESTONES）渲染，
+    按 (公司 → 模型) 逐模型分行；模型事件命中「重大版本/发布」高亮（major=True，前端红色块）。
+    仅收录真正的「模型发布」与「产品版本更新」，不含融资/合作/技术报告/模型登陆平台等非发布类事件；
+    数据完全来自人工核实的 MILESTONES，不再从每日日报抓取（避免把「登陆某平台」「发布技术报告」
+    等非发布类头条混入时间线）。
     返回 {range:[最早,最晚], regions:[{region,label,tint,tag, models:[{company,name,color,events}]}]}，
-    regions 按阵营分块（美国在上、中国在下）；区域内按 公司→事件数 排序；models 即每行一个模型。
-    events: {date, kind(model/product), title, source, file, minor, major}"""
-    dates = sorted(arch.keys())
-    if not dates:
-        return {"range": ["", ""], "regions": []}
+    regions 按阵营分块（美国在上、中国居中、欧洲置底）；区域内按 公司→事件数 排序；
+    models 即每行一个模型。events: {date, kind(model/product), title, source, file, minor, major}"""
     groups = {}  # key=(company,model) -> {company,name,color,region,events:[]}
-    for d in dates:
-        rec = arch[d]
-        for sec in rec.get("sections", []):
-            label = sec.get("label")
-            if label == "模型发布/更新":
-                kind = "model"
-            elif label == "产品发布/更新":
-                kind = "product"
-            else:
-                continue
-            for it in sec.get("items", []):
-                title = (it.get("title") or "")
-                # 安全过滤：仅保留「模型发布 / 产品更新」，跳过融资/合作/论文/榜单等非发布类事件
-                if any(kw in title for kw in _GANT_SKIP_KW):
-                    continue
-                text = (title + " " + (it.get("summary") or "")).lower()
-                comp = None
-                for name, _, kws, _ in COMPANIES:
-                    if any(k in text for k in kws):
-                        comp = name
-                        break
-                if not comp:
-                    continue
-                ccolor, cregion = COMP_MAP[comp]
-                model = comp
-                for mname, mcomp, mkws in MODELS:
-                    if mcomp == comp and any(k in text for k in mkws):
-                        model = mname
-                        break
-                # 仅剔除「未命中任何具体模型」的兜底桶（model 仍等于公司名）；
-                # 命中具体模型（含与公司同名的系列，如 Mistral）一律保留，不强行剔除
-                if model == comp:
-                    continue
-                family = FAMILY.get(model, model)
-                key = (comp, family)
-                g = groups.get(key)
-                if not g:
-                    g = {"company": comp, "name": family, "color": ccolor,
-                         "region": cregion, "events": [],
-                         "rating": RATINGS.get(family)}
-                    groups[key] = g
-                g["events"].append({
-                    "date": d,
-                    "kind": kind,
-                    "title": title.strip(),
-                    "source": it.get("source") or "AI HOT",
-                    "file": f"ai-daily-{d}.html",
-                    "minor": (is_minor_product(title) if kind == "product" else is_minor_model(title)),
-                    "major": (kind == "model") and is_major_model(title),
-                })
-    # ── 合并历史里程碑（2020–2026 经核实的模型发布 / 产品更新）──
+    # ── 合并历史里程碑（2020–2026 经网络核实的模型发布 / 版本更新）──
     for mst in MILESTONES:
         comp = mst["c"]
         if comp not in COMP_MAP:
@@ -1592,9 +1583,9 @@ def compute_gantt(arch, top_n=GANTT_TOP_N):
             "tag": tag,
             "models": models,
         })
-    # 时间线范围：覆盖 daily-feed 与历史里程碑的最早/最晚日期（现含 2020 起）
+    # 时间线范围：全部里程碑日期（2020 起 → 最新发布）
     mdates = [m["d"] for m in MILESTONES if m["c"] in COMP_MAP]
-    alld = sorted(set(dates + mdates))
+    alld = sorted(set(mdates))
     return {"range": [alld[0], alld[-1]], "regions": regions}
 
 def render_index(days):
