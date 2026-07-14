@@ -132,7 +132,7 @@
     <div id="archive"></div>
   </main>
   <footer>
-    <div>数据来源：<a href="https://aihot.virxact.com" target="_blank" rel="noopener noreferrer">AI HOT（aihot.virxact.com）</a> · 生成于 2026年07月15日 00:52</div>
+    <div>数据来源：<a href="https://aihot.virxact.com" target="_blank" rel="noopener noreferrer">AI HOT（aihot.virxact.com）</a> · 生成于 2026年07月15日 00:59</div>
     <div style="margin-top:6px">点击任意一期查看当日完整日报（含五版块与原文跳转）</div>
     <div style="margin-top:8px;opacity:.85">说明：本页已把每条新闻的标题、摘要、来源、日期<b>镜像保存到本地</b>；外部「原文」链接仅作溯源，即使链接失效或无法访问境外站点，已存档内容仍可正常查看。</div>
   </footer>
@@ -250,17 +250,28 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
   const minYear=new Date(full0).getUTCFullYear();
   const maxYear=new Date(full1).getUTCFullYear();
   const numYears=Math.max(1,maxYear-minYear+1);
-  // 时间轴采用「每年等宽列」布局：每个年份占据相同像素宽度，
-  // 彻底消除「空年份大片留白 / 密集年份被压扁」的视觉失衡；可滚轮缩放、拖动平移。
-  let viewMinYear=minYear;     // 可见窗左端（年，可为小数）
-  let viewSpan=numYears;       // 可见年数（缩放：越小越放大）
-  const yearW=()=> plotW/viewSpan;
+  // 时间轴采用「内容加权列宽」：每个年份占用的像素宽度 ∝ 该年事件数 + 基准权重，
+  // 稀疏年份（如 2020/2022 仅 1 次）被压缩成细条，密集年份（如 2026 有数百次）获得更多空间。
+  const RATE_BASE=12;  // 每年最小内容权重，保证空/稀疏年仍有可见细条与年份标签
+  const yearCounts={};
+  G.regions.forEach(reg=> reg.models.forEach(m=> m.events.forEach(e=>{
+    const y=e.date.slice(0,4); yearCounts[y]=(yearCounts[y]||0)+1;
+  })));
+  const YEARS=[]; for(let y=minYear;y<=maxYear;y++) YEARS.push(y);
+  const W_Y={}; let totalUnits=0; const cumBefore={};
+  YEARS.forEach(y=>{ cumBefore[y]=totalUnits; const w=(yearCounts[y]||0)+RATE_BASE; W_Y[y]=w; totalUnits+=w; });
+  // 视图：viewStart=内容空间起点(单位)，viewUnits=可见内容跨度(单位)
+  let viewStart=0, viewUnits=totalUnits;
+  const minView=Math.max(2, totalUnits/12);
   function yearFrac(ms){const dt=new Date(ms);const y=dt.getUTCFullYear();
     const ys=Date.UTC(y,0,1), ye=Date.UTC(y+1,0,1); return (ms-ys)/(ye-ys);}
-  const xAt=ms=>{const y=new Date(ms).getUTCFullYear();
-    return L + ((y - viewMinYear) + yearFrac(ms))/viewSpan * plotW;};
+  function posOf(ms){ const dt=new Date(ms); const y=dt.getUTCFullYear();
+    return cumBefore[y] + yearFrac(ms)*W_Y[y]; }            // 事件 → 内容空间坐标
+  function xOfUnits(u){ return L + (u-viewStart)/viewUnits*plotW; }
+  function xAt(ms){ return xOfUnits(posOf(ms)); }
   const xAtDate=s=> xAt(new Date(s+"T00:00:00Z").getTime());
-  function xToYearFrac(vx){ return viewMinYear + (vx-L)/plotW*viewSpan; }
+  function yearAtUnits(u){ u=Math.max(0,Math.min(totalUnits,u));
+    for(let i=YEARS.length-1;i>=0;i--){ if(u>=cumBefore[YEARS[i]]) return YEARS[i]; } return YEARS[0]; }
   const kindColor={model:"#4f46e5",product:"#059669"};
   const MAJOR="#ef4444";                       // 重大模型更新 红
   const kindText={model:"模型发布",product:"产品更新"};
@@ -276,16 +287,16 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
     return c.events.filter(e=> show[e.kind] && !(majorOnly && e.minor));
   }
 
-  function yearTicks(){ const out=[]; for(let y=minYear;y<=maxYear;y++) out.push(y); return out; }
   function monthTicks(){
-    const out=[]; const yA=Math.max(minYear,Math.ceil(viewMinYear)); const yB=Math.min(maxYear,Math.floor(viewMinYear+viewSpan));
-    for(let y=yA;y<=yB;y++){ for(let mo=1;mo<12;mo++){ const ms=Date.UTC(y,mo,1); if(ms>=full0&&ms<=full1) out.push(ms); } }
+    const out=[];
+    for(let y=minYear;y<=maxYear;y++){ for(let mo=1;mo<12;mo++){ const ms=Date.UTC(y,mo,1); if(ms>=full0&&ms<=full1) out.push(ms); } }
     return out;
   }
   function clampView(){
-    if(viewSpan>numYears) viewSpan=numYears;
-    if(viewMinYear<minYear) viewMinYear=minYear;
-    if(viewMinYear+viewSpan>maxYear+1) viewMinYear=maxYear+1-viewSpan;
+    if(viewUnits>totalUnits) viewUnits=totalUnits;
+    if(viewUnits<minView) viewUnits=minView;
+    if(viewStart<0) viewStart=0;
+    if(viewStart+viewUnits>totalUnits) viewStart=totalUnits-viewUnits;
   }
   function render(){
     clampView();
@@ -333,20 +344,22 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
     const plotBottom=y;
     // 左侧标签栏与绘图区分隔线
     h+=`<line x1="${L.toFixed(1)}" y1="${T}" x2="${L.toFixed(1)}" y2="${plotBottom.toFixed(1)}" stroke="#e4e7ef" stroke-width="1"/>`;
-    // 2) 时间轴：每年等宽列 + 顶部年份标签（置于白色带，竖线从绘图区顶部向下，避免数字被线割裂）
+    // 2) 时间轴：内容加权列宽（稀疏年细、密集年宽）+ 顶部年份标签
     h+=`<rect x="${L}" y="0" width="${W-L-R}" height="${T}" fill="#ffffff"/>`;
     h+=`<text x="${(W-4)}" y="${(T-4).toFixed(1)}" text-anchor="end" font-size="9.5" font-weight="800" fill="#9aa1b1">LMArena Elo ↓</text>`;
-    yearTicks().forEach(y=>{
-      const xb = L + (y - viewMinYear)/viewSpan*plotW;   // 该年列左边界
-      if(xb<L-1 || xb>W-R+1) return;
-      h+=`<line x1="${xb.toFixed(1)}" y1="${T}" x2="${xb.toFixed(1)}" y2="${plotBottom.toFixed(1)}" stroke="#e3e6ee"/>`;
-      if(yearW()>24){   // 列足够宽才显示年份数字，避免拥挤
-        const xc = xb + yearW()/2;
+    YEARS.forEach(y=>{
+      const x0=xOfUnits(cumBefore[y]);            // 该年列左边界
+      const x1=xOfUnits(cumBefore[y]+W_Y[y]);     // 右边界
+      if(x1<L-1 || x0>W-R+1) return;              // 完全在视野外
+      if(x0>=L-1) h+=`<line x1="${x0.toFixed(1)}" y1="${T}" x2="${x0.toFixed(1)}" y2="${plotBottom.toFixed(1)}" stroke="#e3e6ee"/>`;
+      const wpx=x1-x0;
+      if(wpx>14){                                  // 列足够宽才显示年份数字，避免拥挤
+        const xc=(x0+x1)/2;
         h+=`<text x="${xc.toFixed(1)}" y="${(T-4).toFixed(1)}" text-anchor="middle" font-size="11" font-weight="800" fill="#6b7280">${y}</text>`;
       }
     });
-    // 月份细线：仅在放大到足够窄（≤3 年）时显示，避免拥挤
-    if(viewSpan<=3){
+    // 月份细线：仅在放大到足够窄（≤约半个内容跨度，≈3 年）时显示，避免拥挤
+    if(viewUnits<=totalUnits*0.5){
       monthTicks().forEach(ms=>{ const x=xAt(ms); if(x<L-0.5||x>W-R+0.5) return;
         h+=`<line x1="${x.toFixed(1)}" y1="${T}" x2="${x.toFixed(1)}" y2="${plotBottom.toFixed(1)}" stroke="#f3f5f9"/>`;
       });
@@ -385,7 +398,7 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
       });
     });
     svg.innerHTML=h;
-    if(rangeLabel) rangeLabel.textContent=`视图跨度 ${viewSpan.toFixed(1)} 年（${Math.ceil(viewMinYear)}–${Math.min(maxYear,Math.floor(viewMinYear+viewSpan))}）`;
+    if(rangeLabel) rangeLabel.textContent=`可见 ${yearAtUnits(viewStart)}–${yearAtUnits(viewStart+viewUnits)} · 约 ${(viewUnits/totalUnits*numYears).toFixed(1)} 年（按内容量分配列宽）`;
     svg.querySelectorAll(".gev").forEach(g=>{
       const j=JSON.parse(g.getAttribute("data-j"));
       g.addEventListener("mouseenter",()=>{
@@ -410,16 +423,16 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
     });
   }
 
-  // 缩放（滚轮，围绕光标位置）
+  // 缩放（滚轮，围绕光标位置，保持锚点不动）
   svg.addEventListener("wheel",e=>{
     const rect=svg.getBoundingClientRect();
     const vx=(e.clientX-rect.left)/rect.width*W;
     if(vx<L||vx>W-R) return;
     e.preventDefault();
-    const anchor=xToYearFrac(vx);          // 光标处的「年小数」锚点
+    const anchorU = viewStart + (vx-L)/plotW*viewUnits;   // 光标处内容坐标
     const factor=e.deltaY>0 ? 1.25 : 1/1.25;
-    viewSpan=Math.max(0.5, Math.min(numYears, viewSpan*factor));
-    viewMinYear = anchor - (vx-L)/plotW*viewSpan;   // 保持锚点不动
+    viewUnits=Math.max(minView, Math.min(totalUnits, viewUnits*factor));
+    viewStart = anchorU - (vx-L)/plotW*viewUnits;          // 保持锚点不动
     clampView();
     render();
   },{passive:false});
@@ -433,8 +446,8 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
     const rect=svg.getBoundingClientRect();
     const dxPx=e.clientX-lastX; lastX=e.clientX;
     if(Math.abs(dxPx)>2) moved=true;
-    const dxYears = dxPx*(rect.width/W)/plotW*viewSpan;
-    viewMinYear -= dxYears; clampView(); render();
+    const dxUnits = dxPx*(rect.width/W)/plotW*viewUnits;
+    viewStart -= dxUnits; clampView(); render();
   });
   svg.addEventListener("mouseleave",()=>{ if(!dragging) tip.style.display="none"; });
 
@@ -456,7 +469,7 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
   if(mb) mb.addEventListener("click",()=>{ majorOnly=!majorOnly; mb.classList.toggle("active",majorOnly); render(); });
   // 重置视图
   const rb=document.getElementById("ganttReset");
-  if(rb) rb.addEventListener("click",()=>{ viewMinYear=minYear; viewSpan=numYears; render(); });
+  if(rb) rb.addEventListener("click",()=>{ viewStart=0; viewUnits=totalUnits; render(); });
   render();
 })();
 </script>
