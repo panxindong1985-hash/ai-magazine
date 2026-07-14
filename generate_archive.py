@@ -72,6 +72,8 @@ MODELS = [
     ("Veo",       "Google",    ["veo"]),
     ("Llama",     "Meta",      ["llama"]),
     ("Copilot",   "Microsoft", ["copilot"]),
+    ("Orca",      "Microsoft", ["orca"]),
+    ("Phi",       "Microsoft", ["phi"]),
     ("Grok",      "xAI",       ["grok"]),
     ("DeepSeek",  "深度求索",  ["deepseek", "深度求索"]),
     ("文心 ERNIE","百度",       ["文心", "ernie", "千帆"]),
@@ -122,6 +124,7 @@ FAMILY = {
     "DeepSeek": "DeepSeek 系列",
     # Microsoft
     "Copilot": "Copilot",
+    "Orca": "Orca 系列", "Phi": "Phi 系列",
     # 百度
     "文心 ERNIE": "文心 ERNIE",
     # 阿里
@@ -353,8 +356,8 @@ MILESTONES = [
     {"d":"2026-04-23","c":"腾讯","m":"混元","k":"model","t":"腾讯混元 Hy3 预览版发布","major":False,"src":"腾讯"},
     {"d":"2026-07-06","c":"腾讯","m":"混元","k":"model","t":"腾讯混元 Hy3 正式版发布","major":True,"src":"腾讯"},
     # ── Microsoft（美国）──
-    {"d":"2023-06-01","c":"Microsoft","m":"Microsoft","k":"model","t":"微软发布 Orca 小模型：通过模仿大模型推理链大幅提升小模型能力","major":False,"src":"Microsoft"},
-    {"d":"2024-04-23","c":"Microsoft","m":"Microsoft","k":"model","t":"微软发布 Phi-3 系列小语言模型（端侧 3.8B 参数达 SOTA）","major":True,"src":"Microsoft"},
+    {"d":"2023-06-01","c":"Microsoft","m":"Orca","k":"model","t":"微软发布 Orca 小模型：通过模仿大模型推理链大幅提升小模型能力","major":False,"src":"Microsoft"},
+    {"d":"2024-04-23","c":"Microsoft","m":"Phi","k":"model","t":"微软发布 Phi-3 系列小语言模型（端侧 3.8B 参数达 SOTA）","major":True,"src":"Microsoft"},
     {"d":"2023-03-16","c":"Microsoft","m":"Copilot","k":"product","t":"Microsoft 365 Copilot 发布","major":False,"src":"Microsoft"},
     {"d":"2024-05-21","c":"Microsoft","m":"Copilot","k":"product","t":"Copilot+ PC / Copilot Studio 发布","major":False,"src":"Microsoft"},
 ]
