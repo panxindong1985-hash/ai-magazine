@@ -42,13 +42,19 @@ COMPANIES = [
     ("Microsoft","#7c3aed", ["microsoft", "微软", "copilot", "bing"], "us"),
     ("xAI",     "#111827", ["xai", "grok"], "us"),
     ("NVIDIA",  "#76b900", ["nvidia", "英伟达", "h100", "h200", "blackwell"], "us"),
-    ("DeepSeek","#e11d48", ["deepseek", "深度求索"], "cn"),
+    ("深度求索", "#e11d48", ["deepseek", "深度求索"], "cn"),
     ("百度",     "#2932e1", ["百度", "文心", "ernie", "千帆"], "cn"),
     ("阿里",     "#ff6a00", ["阿里", "通义", "qwen", "千问"], "cn"),
     ("腾讯",     "#12b7f5", ["腾讯", "混元", "元宝", "hunyuan"], "cn"),
     ("字节",     "#fe2c55", ["字节", "豆包", "coze", "扣子"], "cn"),
     ("智谱",     "#0ea5e9", ["智谱", "chatglm", "zhipu", "glm"], "cn"),
     ("月之暗面", "#8b5cf6", ["月之暗面", "moonshot", "kimi"], "cn"),
+    ("Mistral",  "#ff7000", ["mistral"], "eu"),
+    ("Amazon",   "#ff9900", ["amazon", "亚马逊", "bedrock", "nova", "titan"], "us"),
+    ("Apple",    "#555555", ["apple", "苹果"], "us"),
+    ("百川",     "#c2185b", ["百川", "baichuan"], "cn"),
+    ("MiniMax",  "#00bcd4", ["minimax", "minmax", "abab"], "cn"),
+    ("讯飞星火", "#0d9488", ["讯飞", "星火", "iflytek", "spark"], "cn"),
 ]
 # 主要模型清单：时间线「按模型分行」用。匹配顺序自上而下；未命中则退化为按公司聚合。
 # (模型名, 所属公司, [关键词小写])
@@ -64,7 +70,7 @@ MODELS = [
     ("Llama",     "Meta",      ["llama"]),
     ("Copilot",   "Microsoft", ["copilot"]),
     ("Grok",      "xAI",       ["grok"]),
-    ("DeepSeek",  "DeepSeek",  ["deepseek", "深度求索"]),
+    ("DeepSeek",  "深度求索",  ["deepseek", "深度求索"]),
     ("文心 ERNIE","百度",       ["文心", "ernie", "千帆"]),
     ("通义千问",  "阿里",       ["通义", "qwen", "千问", "wan", "万相"]),
     ("混元",      "腾讯",       ["混元", "hunyuan", "元宝"]),
@@ -74,6 +80,14 @@ MODELS = [
     ("Coze 扣子", "字节",       ["coze", "扣子"]),
     ("智谱 GLM",  "智谱",       ["智谱", "chatglm", "zhipu", "glm", "清影", "清言"]),
     ("Kimi",      "月之暗面",   ["kimi", "moonshot"]),
+    # ── 新增公司（仅作 daily-feed 归类用，里程碑见 MILESTONES）──
+    ("Mistral 系列", "Mistral", ["mistral"]),
+    ("Nova",       "Amazon",   ["nova"]),
+    ("Titan",      "Amazon",   ["titan"]),
+    ("Apple 基础模型","Apple",  ["apple intelligence", "foundation model", "apple 基础", "apple foundation"]),
+    ("Baichuan",   "百川",     ["baichuan", "百川"]),
+    ("MiniMax 系列","MiniMax",  ["abab", "minimax", "minmax"]),
+    ("星火",       "讯飞星火",  ["星火", "spark", "讯飞"]),
 ]
 COMP_MAP = {name: (color, region) for name, color, _, region in COMPANIES}
 
@@ -109,6 +123,19 @@ FAMILY = {
     "智谱 GLM": "智谱 GLM",
     # 月之暗面
     "Kimi": "Kimi",
+    # Mistral（欧洲）
+    "Mistral 7B": "Mistral 系列", "Mixtral": "Mistral 系列",
+    "Mistral Large": "Mistral 系列", "Mistral Small": "Mistral 系列",
+    # Amazon
+    "Nova": "Nova", "Titan": "Titan",
+    # Apple
+    "Apple 基础模型": "Apple 基础模型",
+    # 百川
+    "Baichuan": "Baichuan",
+    # MiniMax
+    "abab": "MiniMax 系列",
+    # 讯飞星火
+    "星火": "星火",
 }
 
 # ── 历史里程碑（2020–2026 模型发布 / 重大产品版本更新）───────────────────────
@@ -162,10 +189,34 @@ MILESTONES = [
     {"d":"2024-08-13","c":"xAI","m":"Grok","k":"model","t":"Grok 2 发布","major":False,"src":"xAI"},
     {"d":"2025-02-17","c":"xAI","m":"Grok","k":"model","t":"Grok 3 发布","major":True,"src":"xAI"},
     # ── DeepSeek（中国）──
-    {"d":"2024-01-05","c":"DeepSeek","m":"DeepSeek","k":"model","t":"DeepSeek LLM 首个大模型发布","major":False,"src":"深度求索"},
-    {"d":"2024-05-07","c":"DeepSeek","m":"DeepSeek","k":"model","t":"DeepSeek-V2 开源 MoE 模型发布","major":False,"src":"深度求索"},
-    {"d":"2024-12-26","c":"DeepSeek","m":"DeepSeek","k":"model","t":"DeepSeek-V3 开源发布（6710亿参数）","major":True,"src":"深度求索"},
-    {"d":"2025-01-20","c":"DeepSeek","m":"DeepSeek","k":"model","t":"DeepSeek-R1 推理模型开源发布","major":True,"src":"深度求索"},
+    {"d":"2024-01-05","c":"深度求索","m":"DeepSeek","k":"model","t":"DeepSeek LLM 首个大模型发布","major":False,"src":"深度求索"},
+    {"d":"2024-05-07","c":"深度求索","m":"DeepSeek","k":"model","t":"DeepSeek-V2 开源 MoE 模型发布","major":False,"src":"深度求索"},
+    {"d":"2024-12-26","c":"深度求索","m":"DeepSeek","k":"model","t":"DeepSeek-V3 开源发布（6710亿参数）","major":True,"src":"深度求索"},
+    {"d":"2025-01-20","c":"深度求索","m":"DeepSeek","k":"model","t":"DeepSeek-R1 推理模型开源发布","major":True,"src":"深度求索"},
+    # ── Mistral（欧洲）──
+    {"d":"2023-09-27","c":"Mistral","m":"Mistral 7B","k":"model","t":"Mistral 7B 开源发布（7.3B，Apache 2.0）","major":False,"src":"Mistral AI"},
+    {"d":"2023-12-09","c":"Mistral","m":"Mixtral","k":"model","t":"Mixtral 8x7B 开源发布（首个开放 MoE 模型）","major":False,"src":"Mistral AI"},
+    {"d":"2024-02-26","c":"Mistral","m":"Mistral Large","k":"model","t":"Mistral Large 发布（旗舰，对标 GPT-4）","major":True,"src":"Mistral AI"},
+    {"d":"2024-07-24","c":"Mistral","m":"Mistral Large","k":"model","t":"Mistral Large 2 发布（开放权重）","major":True,"src":"Mistral AI"},
+    {"d":"2025-01-30","c":"Mistral","m":"Mistral Small","k":"model","t":"Mistral Small 3 发布","major":False,"src":"Mistral AI"},
+    # ── Amazon（美国）──
+    {"d":"2023-04-13","c":"Amazon","m":"Titan","k":"model","t":"Amazon Titan 基础模型随 Bedrock 推出","major":False,"src":"Amazon"},
+    {"d":"2024-12-02","c":"Amazon","m":"Nova","k":"model","t":"Amazon Nova 系列发布（Micro/Lite/Pro/Premier）","major":True,"src":"Amazon"},
+    {"d":"2025-04-30","c":"Amazon","m":"Nova","k":"model","t":"Amazon Nova Premier 发布","major":False,"src":"Amazon"},
+    # ── Apple（美国）──
+    {"d":"2024-06-10","c":"Apple","m":"Apple 基础模型","k":"product","t":"Apple Intelligence 与端侧基础模型发布（WWDC24）","major":True,"src":"Apple"},
+    # ── 百川（中国）──
+    {"d":"2023-06-15","c":"百川","m":"Baichuan","k":"model","t":"Baichuan-7B 中英文大模型发布","major":False,"src":"百川智能"},
+    {"d":"2024-01-29","c":"百川","m":"Baichuan","k":"model","t":"Baichuan 3 超千亿参数大模型发布","major":False,"src":"百川智能"},
+    {"d":"2024-05-22","c":"百川","m":"Baichuan","k":"model","t":"Baichuan 4 基座大模型发布","major":True,"src":"百川智能"},
+    # ── MiniMax（中国）──
+    {"d":"2024-01-15","c":"MiniMax","m":"abab","k":"model","t":"MiniMax abab6 全量发布（国内首个 MoE 大模型）","major":False,"src":"MiniMax"},
+    {"d":"2024-04-15","c":"MiniMax","m":"abab","k":"model","t":"MiniMax abab6.5 万亿参数 MoE 发布","major":False,"src":"MiniMax"},
+    # ── 讯飞星火（中国）──
+    {"d":"2023-05-06","c":"讯飞星火","m":"星火","k":"model","t":"讯飞星火大模型 V1.0 发布","major":True,"src":"科大讯飞"},
+    {"d":"2023-10-24","c":"讯飞星火","m":"星火","k":"model","t":"讯飞星火 V3.0 发布","major":False,"src":"科大讯飞"},
+    {"d":"2024-06-27","c":"讯飞星火","m":"星火","k":"model","t":"讯飞星火 V4.0 发布（对标 GPT-4 Turbo）","major":True,"src":"科大讯飞"},
+    {"d":"2025-01-15","c":"讯飞星火","m":"星火","k":"model","t":"讯飞星火 X1 深度推理模型发布","major":True,"src":"科大讯飞"},
     # ── 百度（中国）──
     {"d":"2023-03-16","c":"百度","m":"文心 ERNIE","k":"product","t":"文心一言发布","major":False,"src":"百度"},
     {"d":"2023-10-17","c":"百度","m":"文心 ERNIE","k":"model","t":"文心大模型 4.0 发布","major":False,"src":"百度"},
@@ -1056,6 +1107,7 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
   const svg=document.getElementById("ganttChart");
   const W=960,L=200,R=20,T=18,B=44,rowH=30;
   const REGION={us:{label:"🇺🇸 美国公司",tint:"#f3f5ff",tag:"#4f46e5"},
+                eu:{label:"🌍 欧洲公司",tint:"#f0fff4",tag:"#059669"},
                 cn:{label:"🇨🇳 中国公司",tint:"#fff5f6",tag:"#e11d48"}};
   const headerH=22;
   const compH=20;
@@ -1078,13 +1130,21 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
   const full0=new Date(G.range[0]+"T00:00:00Z").getTime();
   const full1=new Date(G.range[1]+"T00:00:00Z").getTime();
   const DAY=86400000;
-  const MIN_SPAN=3*DAY;                 // 最小可见跨度 3 天
   const plotW=W-L-R;
-  let dom0=full0, dom1=full1;           // 当前可见时间窗
-  const msPerPx=()=> (dom1-dom0)/plotW;
-  const xAt=ms=> L+(ms-dom0)/msPerPx();
+  const minYear=new Date(full0).getUTCFullYear();
+  const maxYear=new Date(full1).getUTCFullYear();
+  const numYears=Math.max(1,maxYear-minYear+1);
+  // 时间轴采用「每年等宽列」布局：每个年份占据相同像素宽度，
+  // 彻底消除「空年份大片留白 / 密集年份被压扁」的视觉失衡；可滚轮缩放、拖动平移。
+  let viewMinYear=minYear;     // 可见窗左端（年，可为小数）
+  let viewSpan=numYears;       // 可见年数（缩放：越小越放大）
+  const yearW=()=> plotW/viewSpan;
+  function yearFrac(ms){const dt=new Date(ms);const y=dt.getUTCFullYear();
+    const ys=Date.UTC(y,0,1), ye=Date.UTC(y+1,0,1); return (ms-ys)/(ye-ys);}
+  const xAt=ms=>{const y=new Date(ms).getUTCFullYear();
+    return L + ((y - viewMinYear) + yearFrac(ms))/viewSpan * plotW;};
   const xAtDate=s=> xAt(new Date(s+"T00:00:00Z").getTime());
-  const dateAtVx=vx=> dom0+(vx-L)/plotW*(dom1-dom0);
+  function xToYearFrac(vx){ return viewMinYear + (vx-L)/plotW*viewSpan; }
   const kindColor={model:"#4f46e5",product:"#059669"};
   const MAJOR="#ef4444";                       // 重大模型更新 红
   const kindText={model:"模型发布",product:"产品更新"};
@@ -1098,28 +1158,19 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
     return c.events.filter(e=> show[e.kind] && !(majorOnly && e.minor));
   }
 
-  function fmt(ms){const d=new Date(ms);return `${d.getUTCMonth()+1}月${d.getUTCDate()}日`;}
-  function tickStep(){const days=(dom1-dom0)/DAY;
-    if(days>180) return 30; if(days>70) return 14; if(days>25) return 7; if(days>10) return 3; return 1;}
-  function ticks(){
-    const step=tickStep(); const out=[];
-    let t=Math.ceil((dom0-full0)/(step*DAY))*(step*DAY)+full0;
-    for(; t<=dom1+1; t+=step*DAY) out.push(t);
+  function yearTicks(){ const out=[]; for(let y=minYear;y<=maxYear;y++) out.push(y); return out; }
+  function monthTicks(){
+    const out=[]; const yA=Math.max(minYear,Math.ceil(viewMinYear)); const yB=Math.min(maxYear,Math.floor(viewMinYear+viewSpan));
+    for(let y=yA;y<=yB;y++){ for(let mo=1;mo<12;mo++){ const ms=Date.UTC(y,mo,1); if(ms>=full0&&ms<=full1) out.push(ms); } }
     return out;
   }
-  function yearTicks(){ // 每年 1 月 1 日，用于「年视图」
-    const out=[]; const y0=new Date(full0).getUTCFullYear(); const y1=new Date(full1).getUTCFullYear();
-    for(let y=y0;y<=y1;y++) out.push(new Date(y+"-01-01T00:00:00Z").getTime());
-    return out;
-  }
-  function clamp(){
-    let s=dom1-dom0; s=Math.max(MIN_SPAN,Math.min(full1-full0,s));
-    if(dom0<full0){dom0=full0;dom1=full0+s;}
-    if(dom1>full1){dom1=full1;dom0=full1-s;}
-    dom0=Math.max(full0,dom0); dom1=Math.min(full1,dom1);
+  function clampView(){
+    if(viewSpan>numYears) viewSpan=numYears;
+    if(viewMinYear<minYear) viewMinYear=minYear;
+    if(viewMinYear+viewSpan>maxYear+1) viewMinYear=maxYear+1-viewSpan;
   }
   function render(){
-    clamp();
+    clampView();
     let h=""; const rowY={}; let band=0; let y=T;
     // 1) 区域带 + 公司分组头 + 模型行（每公司下展开各自模型）
     rows.forEach(r=>{
@@ -1153,24 +1204,21 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
     const plotBottom=y;
     // 左侧标签栏与绘图区分隔线
     h+=`<line x1="${L.toFixed(1)}" y1="${T}" x2="${L.toFixed(1)}" y2="${plotBottom.toFixed(1)}" stroke="#e4e7ef" stroke-width="1"/>`;
-    // 2) 时间轴刻度：跨度 > 2 年用「年视图」（年份标签 + 淡月线），否则「月视图」
-    const spanDays=(dom1-dom0)/DAY;
-    if(spanDays>730){
-      // 年份标签置于绘图区上方留白带，竖线从绘图区顶部向下画，避免数字被线割裂
-      h+=`<rect x="${L}" y="0" width="${W-L-R}" height="${T}" fill="#ffffff"/>`;
-      yearTicks().forEach(yt=>{ const x=xAt(yt); if(x<L-0.5||x>W-R+0.5) return;
-        h+=`<line x1="${x.toFixed(1)}" y1="${T}" x2="${x.toFixed(1)}" y2="${plotBottom.toFixed(1)}" stroke="#d7dbe6"/>`;
-        h+=`<text x="${(x+4).toFixed(1)}" y="${(T-4).toFixed(1)}" text-anchor="start" font-size="11" font-weight="800" fill="#6b7280">${new Date(yt).getUTCFullYear()}</text>`;
-      });
-      ticks().forEach(ms=>{ const x=xAt(ms); if(x<L-0.5||x>W-R+0.5) return;
-        h+=`<line x1="${x.toFixed(1)}" y1="${T}" x2="${x.toFixed(1)}" y2="${plotBottom.toFixed(1)}" stroke="#f0f2f7"/>`;
-      });
-    } else {
-      ticks().forEach(ms=>{ const x=xAt(ms);
-        if(x<L-0.5||x>W-R+0.5) return;
-        h+=`<line x1="${x.toFixed(1)}" y1="${T}" x2="${x.toFixed(1)}" y2="${plotBottom.toFixed(1)}" stroke="#eef0f5"/>`;
-        const d=new Date(ms); const lab = tickStep()>=30 ? `${d.getUTCMonth()+1}月` : `${d.getUTCMonth()+1}/${d.getUTCDate()}`;
-        h+=`<text x="${x.toFixed(1)}" y="${(H-22).toFixed(1)}" text-anchor="middle" font-size="10.5" fill="#9aa1b1">${lab}</text>`;
+    // 2) 时间轴：每年等宽列 + 顶部年份标签（置于白色带，竖线从绘图区顶部向下，避免数字被线割裂）
+    h+=`<rect x="${L}" y="0" width="${W-L-R}" height="${T}" fill="#ffffff"/>`;
+    yearTicks().forEach(y=>{
+      const xb = L + (y - viewMinYear)/viewSpan*plotW;   // 该年列左边界
+      if(xb<L-1 || xb>W-R+1) return;
+      h+=`<line x1="${xb.toFixed(1)}" y1="${T}" x2="${xb.toFixed(1)}" y2="${plotBottom.toFixed(1)}" stroke="#e3e6ee"/>`;
+      if(yearW()>24){   // 列足够宽才显示年份数字，避免拥挤
+        const xc = xb + yearW()/2;
+        h+=`<text x="${xc.toFixed(1)}" y="${(T-4).toFixed(1)}" text-anchor="middle" font-size="11" font-weight="800" fill="#6b7280">${y}</text>`;
+      }
+    });
+    // 月份细线：仅在放大到足够窄（≤3 年）时显示，避免拥挤
+    if(viewSpan<=3){
+      monthTicks().forEach(ms=>{ const x=xAt(ms); if(x<L-0.5||x>W-R+0.5) return;
+        h+=`<line x1="${x.toFixed(1)}" y1="${T}" x2="${x.toFixed(1)}" y2="${plotBottom.toFixed(1)}" stroke="#f3f5f9"/>`;
       });
     }
     // 3) 事件标记（重大模型更新=红；其余按类型着色）
@@ -1207,7 +1255,7 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
       });
     });
     svg.innerHTML=h;
-    if(rangeLabel) rangeLabel.textContent=`可见：${fmt(dom0)} – ${fmt(dom1)}`;
+    if(rangeLabel) rangeLabel.textContent=`视图跨度 ${viewSpan.toFixed(1)} 年（${Math.ceil(viewMinYear)}–${Math.min(maxYear,Math.floor(viewMinYear+viewSpan))}）`;
     svg.querySelectorAll(".gev").forEach(g=>{
       const j=JSON.parse(g.getAttribute("data-j"));
       g.addEventListener("mouseenter",()=>{
@@ -1238,11 +1286,11 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
     const vx=(e.clientX-rect.left)/rect.width*W;
     if(vx<L||vx>W-R) return;
     e.preventDefault();
-    const anchor=dateAtVx(vx);
-    const factor=e.deltaY>0 ? 1.18 : 1/1.18;
-    let s=(dom1-dom0)*factor; s=Math.max(MIN_SPAN,Math.min(full1-full0,s));
-    const frac=(vx-L)/plotW;
-    dom0=anchor-frac*s; dom1=dom0+s;
+    const anchor=xToYearFrac(vx);          // 光标处的「年小数」锚点
+    const factor=e.deltaY>0 ? 1.25 : 1/1.25;
+    viewSpan=Math.max(0.5, Math.min(numYears, viewSpan*factor));
+    viewMinYear = anchor - (vx-L)/plotW*viewSpan;   // 保持锚点不动
+    clampView();
     render();
   },{passive:false});
 
@@ -1255,8 +1303,8 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
     const rect=svg.getBoundingClientRect();
     const dxPx=e.clientX-lastX; lastX=e.clientX;
     if(Math.abs(dxPx)>2) moved=true;
-    const dxMs=dxPx*(rect.width/W)*msPerPx();
-    dom0-=dxMs; dom1-=dxMs; render();
+    const dxYears = dxPx*(rect.width/W)/plotW*viewSpan;
+    viewMinYear -= dxYears; clampView(); render();
   });
   svg.addEventListener("mouseleave",()=>{ if(!dragging) tip.style.display="none"; });
 
@@ -1278,7 +1326,7 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
   if(mb) mb.addEventListener("click",()=>{ majorOnly=!majorOnly; mb.classList.toggle("active",majorOnly); render(); });
   // 重置视图
   const rb=document.getElementById("ganttReset");
-  if(rb) rb.addEventListener("click",()=>{ dom0=full0; dom1=full1; render(); });
+  if(rb) rb.addEventListener("click",()=>{ viewMinYear=minYear; viewSpan=numYears; render(); });
   render();
 })();
 </script>
@@ -1341,10 +1389,11 @@ def compute_gantt(arch, top_n=GANTT_TOP_N):
                     if mcomp == comp and any(k in text for k in mkws):
                         model = mname
                         break
-                # 归族：同一系列不同大版本合并到一行；若未命中具体模型（等于公司名）则剔除，不进时间线
-                family = FAMILY.get(model, model)
-                if family == comp:
+                # 仅剔除「未命中任何具体模型」的兜底桶（model 仍等于公司名）；
+                # 命中具体模型（含与公司同名的系列，如 Mistral）一律保留，不强行剔除
+                if model == comp:
                     continue
+                family = FAMILY.get(model, model)
                 key = (comp, family)
                 g = groups.get(key)
                 if not g:
@@ -1367,7 +1416,7 @@ def compute_gantt(arch, top_n=GANTT_TOP_N):
             continue
         ccolor, cregion = COMP_MAP[comp]
         fam = FAMILY.get(mst["m"], mst["m"])
-        if fam == comp:   # 兜底保护：避免公司名直接成行
+        if mst["m"] == comp:   # 仅当里程碑本身就是公司名（兜底桶）时剔除
             continue
         key = (comp, fam)
         g = groups.get(key)
@@ -1381,16 +1430,22 @@ def compute_gantt(arch, top_n=GANTT_TOP_N):
             "minor": False, "major": bool(mst.get("major")),
         })
     regions = []
-    for region in ("us", "cn"):
+    _REGION_META = {
+        "us": ("🇺🇸 美国公司", "#f3f5ff", "#4f46e5"),
+        "eu": ("🌍 欧洲公司", "#f0fff4", "#059669"),
+        "cn": ("🇨🇳 中国公司", "#fff5f6", "#e11d48"),
+    }
+    for region in ("us", "eu", "cn"):
         models = [g for g in groups.values() if g["region"] == region]
         models.sort(key=lambda m: (m["company"], -len(m["events"])))
         if not models:
             continue
+        label, tint, tag = _REGION_META.get(region, (region, "#f6f7fb", "#6b7280"))
         regions.append({
             "region": region,
-            "label": ("🇺🇸 美国公司" if region == "us" else "🇨🇳 中国公司"),
-            "tint": ("#f3f5ff" if region == "us" else "#fff5f6"),
-            "tag": ("#4f46e5" if region == "us" else "#e11d48"),
+            "label": label,
+            "tint": tint,
+            "tag": tag,
             "models": models,
         })
     # 时间线范围：覆盖 daily-feed 与历史里程碑的最早/最晚日期（现含 2020 起）
