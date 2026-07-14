@@ -33,7 +33,12 @@ jobs:
         run: pip install trafilatura
 
       - name: Generate / update archive
-        run: python generate_archive.py
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            python generate_archive.py --render-only
+          else
+            python generate_archive.py
+          fi
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
