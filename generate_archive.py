@@ -525,7 +525,16 @@ INDEX_TPL = r"""<!DOCTYPE html>
     font-size:12px;line-height:1.55;padding:8px 10px;border-radius:10px;box-shadow:0 6px 18px rgba(16,24,40,.25);
     z-index:5;max-width:300px}
   #ganttTip b{font-weight:700}
-  @media (max-width:560px){.hero h1{font-size:27px}.grid{grid-template-columns:1fr}}
+  .timebar{position:sticky;top:0;z-index:15;background:rgba(255,255,255,.95);backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;padding:10px 18px;margin:18px 0 4px}
+  .timebar #sliderLabel{font-size:13px;font-weight:700;color:#4f46e5;min-width:118px;white-space:nowrap}
+  .timebar input[type=range]{flex:1;accent-color:#4f46e5;cursor:pointer;height:4px}
+  .timebar #toNewest{font-size:12.5px;font-weight:700;color:#4f46e5;border:1px solid #c9cdfb;background:#fff;
+    border-radius:999px;padding:6px 12px;cursor:pointer;white-space:nowrap}
+  .year-h{font-size:26px;font-weight:800;margin:28px 0 2px;color:#1f2430;letter-spacing:.5px}
+  .month-h{font-size:15.5px;font-weight:700;color:#4b5161;margin:18px 0 12px;padding-left:11px;border-left:4px solid #4f46e5}
+  @media (max-width:560px){.hero h1{font-size:27px}.grid{grid-template-columns:1fr}
+    .timebar{flex-wrap:wrap;gap:8px}.timebar #sliderLabel{min-width:0}}
 </style>
 </head>
 <body>
@@ -557,7 +566,14 @@ INDEX_TPL = r"""<!DOCTYPE html>
     </div>
     <p class="trend-sub" style="margin-top:8px">提示：在图上滚动鼠标滚轮可放大/缩小某一时间段，按住拖动可平移时间轴。</p>
   </section>
-  <main class="wrap"><div class="grid" id="grid"></div></main>
+  <main class="wrap">
+    <div class="timebar">
+      <span id="sliderLabel">—</span>
+      <input type="range" id="timeSlider" min="0" max="0" value="0" aria-label="时间轴拖拽快速查阅">
+      <button id="toNewest" type="button">↥ 最新</button>
+    </div>
+    <div id="archive"></div>
+  </main>
   <footer>
     <div>数据来源：<a href="__SOURCEURL__" target="_blank" rel="noopener noreferrer">AI HOT（aihot.virxact.com）</a> · 生成于 __GENERATEDAT__</div>
     <div style="margin-top:6px">点击任意一期查看当日完整日报（含五版块与原文跳转）</div>
@@ -565,19 +581,48 @@ INDEX_TPL = r"""<!DOCTYPE html>
   </footer>
 <script>
 const DAYS = __DAYS__;
+const GROUPS = __GROUPS__;
 const GANTT = __GANTT__;
-const grid=document.getElementById("grid");
-DAYS.forEach(d=>{
-  const el=document.createElement("a");el.className="day";el.href=d.file;
-  const chips=d.sections.map(s=>'<span class="chip">'+escapeHtml(s.label)+' '+s.count+'</span>').join("");
-  el.innerHTML=
-    '<div class="top"><span class="date">'+d.meta.reportDateHuman+'</span>'+
-      '<span class="wd">'+d.meta.weekday+(d.isToday?' <span class="badge">今天</span>':'')+'</span></div>'+
-    (d.lead?'<p class="lead">'+escapeHtml(d.lead)+'</p>':'')+
-    '<div class="chips">'+chips+'</div>'+
-    '<div class="foot"><span class="total">共 '+d.meta.total+' 条</span><span class="go">查看完整日报 →</span></div>';
-  grid.appendChild(el);
+// ---- 按 年→月 分组渲染（最新年/月在上，每月下按日期倒序列出） ----
+const ARCHIVE=document.getElementById("archive");
+GROUPS.forEach(g=>{
+  const ysec=document.createElement("section"); ysec.className="year";
+  const yh=document.createElement("h2"); yh.className="year-h"; yh.textContent=g.year+" 年"; ysec.appendChild(yh);
+  g.months.forEach(mo=>{
+    const mdiv=document.createElement("div"); mdiv.className="month";
+    const mh=document.createElement("h3"); mh.className="month-h"; mh.textContent=mo.month+" 月 · "+mo.days.length+" 期"; mdiv.appendChild(mh);
+    const gd=document.createElement("div"); gd.className="grid";
+    mo.days.forEach(d=>{
+      const el=document.createElement("a"); el.className="day"; el.href=d.file; el.id="day-"+d.date;
+      const chips=d.sections.map(s=>'<span class="chip">'+escapeHtml(s.label)+' '+s.count+'</span>').join("");
+      el.innerHTML=
+        '<div class="top"><span class="date">'+d.meta.reportDateHuman+'</span>'+
+          '<span class="wd">'+d.meta.weekday+(d.isToday?' <span class="badge">今天</span>':'')+'</span></div>'+
+        (d.lead?'<p class="lead">'+escapeHtml(d.lead)+'</p>':'')+
+        '<div class="chips">'+chips+'</div>'+
+        '<div class="foot"><span class="total">共 '+d.meta.total+' 条</span><span class="go">查看完整日报 →</span></div>';
+      gd.appendChild(el);
+    });
+    mdiv.appendChild(gd); ysec.appendChild(mdiv);
+  });
+  ARCHIVE.appendChild(ysec);
 });
+// ---- 时间轴拖拽进度条：拖动滑块快速定位到对应日期 ----
+(function(){
+  const slider=document.getElementById("timeSlider");
+  const label=document.getElementById("sliderLabel");
+  const N=DAYS.length;
+  function goto(v){
+    const d=DAYS[N-1-v]; if(!d) return;
+    const el=document.getElementById("day-"+d.date);
+    if(el) el.scrollIntoView({behavior:"smooth",block:"start"});
+    label.textContent=d.meta.reportDateHuman;
+  }
+  slider.max=N-1;
+  slider.addEventListener("input",()=>goto(parseInt(slider.value,10)));
+  document.getElementById("toNewest").addEventListener("click",()=>{slider.value=N-1;goto(N-1);});
+  slider.value=N-1; goto(N-1);
+})();
 function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 
 // ---------- 主要 AI 公司 模型/产品 更新时间线（甘特式 + 缩放/拖动，纯 SVG） ----------
@@ -845,6 +890,7 @@ def render_index(days):
     for d in days:
         idx_days.append({
             "file": f"ai-daily-{d['meta']['reportDate']}.html",
+            "date": d["meta"]["reportDate"],
             "meta": d["meta"],
             "sections": [{"label": s["label"], "count": len(s["items"])} for s in d["sections"]],
             "lead": d.get("lead", ""),
@@ -854,8 +900,19 @@ def render_index(days):
     oldest = days[-1]["meta"]["reportDateHuman"]
     arch_like = {d["meta"]["reportDate"]: d for d in days}
     gantt = compute_gantt(arch_like)
+    # 按 年→月 分组（倒序：最新年/月在上），每月下列出各日期（倒序）
+    by_year = {}
+    for d in idx_days:
+        y = d["meta"]["reportDate"][:4]
+        m = int(d["meta"]["reportDate"][5:7])
+        by_year.setdefault(y, {}).setdefault(m, []).append(d)
+    groups = []
+    for y in sorted(by_year.keys(), reverse=True):
+        months = [{"month": m, "days": by_year[y][m]} for m in sorted(by_year[y].keys(), reverse=True)]
+        groups.append({"year": y, "months": months})
     return (INDEX_TPL
         .replace("__DAYS__", json.dumps(idx_days, ensure_ascii=False).replace("<","\\u003c").replace(">","\\u003e"))
+        .replace("__GROUPS__", json.dumps(groups, ensure_ascii=False).replace("<","\\u003c").replace(">","\\u003e"))
         .replace("__GANTT__", json.dumps(gantt, ensure_ascii=False).replace("<","\\u003c").replace(">","\\u003e"))
         .replace("__RANGE__", f"{oldest} – {newest}")
         .replace("__NDAYS__", str(len(days)))
