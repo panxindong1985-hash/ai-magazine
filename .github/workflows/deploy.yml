@@ -1,6 +1,7 @@
 name: 部署 AI资讯杂志
 
 on:
+  push:                     # 推送即部署（含本文件的本次推送也会触发）
   schedule:
     - cron: '0 0 * * *'   # UTC 00:00 = 北京时间 08:00，每日自动更新
   workflow_dispatch:       # 也支持手动触发
