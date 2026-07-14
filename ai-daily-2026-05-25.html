@@ -65,6 +65,28 @@
   footer{margin-top:36px;padding:26px 0 40px;border-top:1px solid var(--line);color:var(--muted);font-size:13px;text-align:center}
   footer a{color:#4f46e5;text-decoration:none}
   @media (max-width:560px){.hero h1{font-size:27px}.grid{grid-template-columns:1fr}.stat{min-width:0;flex:1 1 40%}}
+  /* 站内统一阅读面板 */
+  .card{cursor:pointer}
+  .reader-overlay{position:fixed;inset:0;z-index:60;background:rgba(18,20,32,.55);backdrop-filter:blur(3px);
+    display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;overflow:auto}
+  .reader-overlay[hidden]{display:none}
+  .reader{background:#fff;border-radius:18px;max-width:840px;width:100%;box-shadow:0 30px 80px rgba(0,0,0,.32);
+    display:flex;flex-direction:column;max-height:90vh;overflow:hidden;animation:pop .18s ease}
+  @keyframes pop{from{transform:translateY(8px) scale(.98);opacity:0}to{transform:none;opacity:1}}
+  .reader-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;
+    padding:20px 24px 14px;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff}
+  .reader-head h2{margin:0 0 8px;font-size:20px;line-height:1.45;font-weight:800}
+  .reader-head .chip{background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.3)}
+  .reader-x{background:rgba(255,255,255,.2);border:none;color:#fff;font-size:24px;line-height:1;
+    width:38px;height:38px;border-radius:10px;cursor:pointer;flex:0 0 auto}
+  .reader-x:hover{background:rgba(255,255,255,.34)}
+  .reader-body{padding:20px 24px;overflow:auto;color:#2a2f3a;font-size:15.5px;line-height:1.85}
+  .reader-body p{margin:0 0 14px}
+  .reader-body .r-empty{color:#6b7280;font-style:italic}
+  .reader-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+    padding:14px 24px 18px;border-top:1px solid var(--line);background:#fafbff}
+  .reader-foot .r-note{font-size:12.5px;color:var(--muted);max-width:62%}
+  .reader-foot .readmore{margin:0}
 </style>
 </head>
 <body>
@@ -83,8 +105,24 @@
     <div style="margin-top:8px;opacity:.85">说明：本条新闻的标题、摘要、来源、日期已<b>镜像保存在本页</b>；即便外部链接失效或无法访问境外站点，已存档内容仍可正常查看。</div>
   </footer>
   <a href="index.html" class="backhome" title="返回 AI资讯杂志 首页">📰 返回 AI资讯杂志</a>
+  <div class="reader-overlay" id="reader" hidden>
+    <div class="reader" role="dialog" aria-modal="true">
+      <div class="reader-head">
+        <div style="min-width:0">
+          <h2 id="readerTitle"></h2>
+          <span class="chip" id="readerSource"></span>
+        </div>
+        <button class="reader-x" onclick="closeReader()" aria-label="关闭">×</button>
+      </div>
+      <div class="reader-body" id="readerBody"></div>
+      <div class="reader-foot">
+        <span class="r-note">本文由 <b>AI资讯杂志</b> 整理镜像，原文版权归原作者所有 · 点击右侧按钮查看原始报道</span>
+        <a id="readerLink" class="readmore" target="_blank" rel="noopener noreferrer">查看原文 ↗</a>
+      </div>
+    </div>
+  </div>
 <script>
-const DATA = {"meta": {"reportDate": "2026-05-25", "reportDateHuman": "2026年5月25日", "weekday": "星期一", "total": 8, "source": "AI HOT", "sourceUrl": "https://aihot.virxact.com", "generatedAt": "2026年07月14日 17:28"}, "sections": [{"label": "产品发布/更新", "color": "#059669", "items": [{"seq": 1, "title": "Luma Agents 实现规模化真实 UGC 广告生成", "source": "X：Luma AI (@LumaLabsAI)", "summary": "规模化的真实性曾是矛盾，如今已成现实。 定义简报，设定风格，Luma Agents 从这里构建每一条 UGC 风格广告…", "url": "https://x.com/LumaLabsAI/status/2058672731705503959", "publishedAt": "2026-05-25T00:00:00.000Z", "exact": false}, {"seq": 2, "title": "OpenClaw 2026.5.22发布：性能优化与安全加固", "source": "X：OpenClaw (@openclaw)", "summary": "OpenClaw 2026.5.22 已上线 ⚡ Gateway/模型启动路径更精简 🧠 /models 响应时间降至…", "url": "https://x.com/openclaw/status/2058397616124072274", "publishedAt": "2026-05-25T00:00:00.000Z", "exact": false}]}, {"label": "行业动态", "color": "#d97706", "items": [{"seq": 3, "title": "TrapDoor供应链攻击：AI助手成新型攻击面", "source": "X：Kim (@kimmonismus)", "summary": "一场名为“TrapDoor”的协调供应链攻击同时袭击了npm、PyPI和Crates.io，涉及34个恶意包，旨在窃取…", "url": "https://x.com/kimmonismus/status/2058584943052161488", "publishedAt": "2026-05-25T00:00:00.000Z", "exact": false}, {"seq": 4, "title": "DeepSeek将对其旗舰AI模型实施永久性75%折扣", "source": "Hacker News 热门（buzzing.cc 中文翻译）", "summary": "", "url": "https://www.bloomberg.com/news/articles/2026-05-23/deepseek-to-make-permanent-75-discount-on-flagship-ai-model", "publishedAt": "2026-05-25T00:00:00.000Z", "exact": false}]}, {"label": "技巧与观点", "color": "#0284c7", "items": [{"seq": 5, "title": "面向 Codex 的自我优化提示词框架", "source": "X：Greg Brockman (@gdb)", "summary": "这是一个结构化的提示词，用于指导 Codex 自动分析其历史记录以识别并固化重复工作流。该框架要求 Codex 回顾会…", "url": "https://x.com/gdb/status/2058598608224858442", "publishedAt": "2026-05-25T00:00:00.000Z", "exact": false}, {"seq": 6, "title": "格雷格·布罗克曼：那段差点让OpenAI覆灭的72小时", "source": "Hacker News 热门（buzzing.cc 中文翻译）", "summary": "", "url": "https://fs.blog/knowledge-project-podcast/greg-brockman", "publishedAt": "2026-05-25T00:00:00.000Z", "exact": false}, {"seq": 7, "title": "Claude Code自动模式：多任务并行的关键技巧", "source": "X：Boris Cherny (@bcherny)", "summary": "人们常问我，用好Claude Code的最大技巧是什么。 如今我的头号技巧是：使用自动模式。 自动模式意味着不再有权限…", "url": "https://x.com/bcherny/status/2058519809214607704", "publishedAt": "2026-05-25T00:00:00.000Z", "exact": false}, {"seq": 8, "title": "Pixverse角色设计工作流测试", "source": "X：PixVerse (@PixVerse_)", "summary": "在Pixverse中进行角色设计工作流测试 使用GPT Image 2.0为Lucas创建视觉形象，使用Seedanc…", "url": "https://x.com/PixVerse_/status/2058564994669727803", "publishedAt": "2026-05-25T00:00:00.000Z", "exact": false}]}]};
+const DATA = {"meta": {"reportDate": "2026-05-25", "reportDateHuman": "2026年5月25日", "weekday": "星期一", "total": 8, "source": "AI HOT", "sourceUrl": "https://aihot.virxact.com", "generatedAt": "2026年07月14日 17:28"}, "sections": [{"label": "产品发布/更新", "color": "#059669", "items": [{"seq": 1, "title": "Luma Agents 实现规模化真实 UGC 广告生成", "source": "X：Luma AI (@LumaLabsAI)", "summary": "规模化的真实性曾是矛盾，如今已成现实。 定义简报，设定风格，Luma Agents 从这里构建每一条 UGC 风格广告…", "url": "https://x.com/LumaLabsAI/status/2058672731705503959", "publishedAt": "2026-05-25T00:00:00.000Z", "exact": false, "content": "Authenticity at scale used to be a contradiction. Not anymore.\nDefine the brief. Set the style. Luma Agents build every UGC style ad from there.\nMake it real → lumalabs.ai/app"}, {"seq": 2, "title": "OpenClaw 2026.5.22发布：性能优化与安全加固", "source": "X：OpenClaw (@openclaw)", "summary": "OpenClaw 2026.5.22 已上线 ⚡ Gateway/模型启动路径更精简 🧠 /models 响应时间降至…", "url": "https://x.com/openclaw/status/2058397616124072274", "publishedAt": "2026-05-25T00:00:00.000Z", "exact": false, "content": "OpenClaw 2026.5.22 is live\n⚡ Gateway/model startup paths got leaner\n🧠 /models drops to ~5ms\n🔒 npm packages ship locked deps\n🪟 Windows install/update paths hardened\nLess waiting, fewer surprises."}]}, {"label": "行业动态", "color": "#d97706", "items": [{"seq": 3, "title": "TrapDoor供应链攻击：AI助手成新型攻击面", "source": "X：Kim (@kimmonismus)", "summary": "一场名为“TrapDoor”的协调供应链攻击同时袭击了npm、PyPI和Crates.io，涉及34个恶意包，旨在窃取…", "url": "https://x.com/kimmonismus/status/2058584943052161488", "publishedAt": "2026-05-25T00:00:00.000Z", "exact": false, "content": "A coordinated supply chain attack called \"TrapDoor\" just hit npm, PyPI, and Crates. io simultaneously, 34 malicious packages targeting crypto, AI, and security developers to steal wallets, SSH keys, and cloud credentials.\nNew: attackers are also submitting pull requests to popular open-source repos, injecting manipulated CLAUDE.md and .cursorrules config files. \nWhen a developer clones the repo and works with Claude Code or Cursor, the AI agent reads those files as trusted instructions, and could execute malicious commands without the developer realizing it.\nUsing AI assistants as the attack surface is new.\nReplying to @SocketSecurity\nMore analysis, package details, IOCs, and GitHub-related activity here, including attacker-hosted payload/config infrastructure and PRs attempting to add .cursorrules / CLAUDE.md files to popular AI and developer projects:\nsocket.dev/blog/trapdoor-…"}, {"seq": 4, "title": "DeepSeek将对其旗舰AI模型实施永久性75%折扣", "source": "Hacker News 热门（buzzing.cc 中文翻译）", "summary": "", "url": "https://www.bloomberg.com/news/articles/2026-05-23/deepseek-to-make-permanent-75-discount-on-flagship-ai-model", "publishedAt": "2026-05-25T00:00:00.000Z", "exact": false, "content": ""}]}, {"label": "技巧与观点", "color": "#0284c7", "items": [{"seq": 5, "title": "面向 Codex 的自我优化提示词框架", "source": "X：Greg Brockman (@gdb)", "summary": "这是一个结构化的提示词，用于指导 Codex 自动分析其历史记录以识别并固化重复工作流。该框架要求 Codex 回顾会…", "url": "https://x.com/gdb/status/2058598608224858442", "publishedAt": "2026-05-25T00:00:00.000Z", "exact": false, "content": "self improvement prompt for codex\nUPDATE: Came up with an even better version of this prompt after the feedback\nAsk Codex to look across your sessions, Memories, and Chronicle, identify patterns, reuse what already exists, and only create the smallest useful skill, subagent, or automation.\n\"Look back over my"}, {"seq": 6, "title": "格雷格·布罗克曼：那段差点让OpenAI覆灭的72小时", "source": "Hacker News 热门（buzzing.cc 中文翻译）", "summary": "", "url": "https://fs.blog/knowledge-project-podcast/greg-brockman", "publishedAt": "2026-05-25T00:00:00.000Z", "exact": false, "content": "The AI race, the future of AGI, and the inside story of OpenAI.\nGreg Brockman is the co-founder and President of OpenAI, the company behind ChatGPT and GPT-5. He was the first engineer at Stripe before leaving in 2015 to help start OpenAI.\nIn this rare conversation, Greg goes inside the moments that built, and nearly broke, the most important AI company in the world.\nFeatured clips\nBreakthrough Moments at OpenAI\nSam Altman's Firing\nIs AI Going Parabolic?\nWhy ChatGPT No Longer Shows Reasoning\nAI and Job Loss\nAvailable Now: YouTube | Spotify | Apple Podcasts | Transcript\nGreg explains how the original Napa offsite produced the three-step technical plan OpenAI has followed for a decade and the real reason OpenAI had to abandon its pure nonprofit structure. He then walks through the 72 hours after Sam Altman was fired: where he was when he got the board call, why he quit the same day, how the “Phoenix” backup company was designed at Sam’s house the next morning, and the moment Ilya Sutskever’s tweet changed everything.\nFrom there, the conversation turns forward: whether we’re in a global AI race, how much of OpenAI’s own code is now written by AI (“it’s hard to know what percent is not“), why OpenAI stopped showing reasoning traces, what a compute-constrained world means for who gets access to AGI, and Greg’s answer to the question everyone is really asking: What happens to your job?\n+ Check out the Granola Notes."}, {"seq": 7, "title": "Claude Code自动模式：多任务并行的关键技巧", "source": "X：Boris Cherny (@bcherny)", "summary": "人们常问我，用好Claude Code的最大技巧是什么。 如今我的头号技巧是：使用自动模式。 自动模式意味着不再有权限…", "url": "https://x.com/bcherny/status/2058519809214607704", "publishedAt": "2026-05-25T00:00:00.000Z", "exact": false, "content": "People often ask what my biggest tip is for getting the most out of Claude Code.\nThese days my #1 tip is: use auto mode\nAuto mode means no more permission prompts. It is the key building block for multi-clauding: start a session, then while it runs, work on another session in parallel."}, {"seq": 8, "title": "Pixverse角色设计工作流测试", "source": "X：PixVerse (@PixVerse_)", "summary": "在Pixverse中进行角色设计工作流测试 使用GPT Image 2.0为Lucas创建视觉形象，使用Seedanc…", "url": "https://x.com/PixVerse_/status/2058564994669727803", "publishedAt": "2026-05-25T00:00:00.000Z", "exact": false, "content": "Character design workflow test in Pixverse\nGPT Image 2.0 for Lucas’ visual identity, Seedance 2.0 for animated popping performance.\nFrom static concept sheet to cinematic motion.\nRT + Follow + Reply = Workflow"}]}]};
 function pad(n){return n<10?"0"+n:""+n;}
 function toBeijingHuman(iso, ref, exact){
   const d=new Date(iso); const bj=new Date(d.getTime()+8*3600*1000);
@@ -118,11 +156,32 @@ sections.forEach((s,i)=>{
       '<h3>'+escapeHtml(it.title)+'</h3><span class="chip">'+escapeHtml(it.source)+'</span>'+
       '<p class="summary">'+escapeHtml(it.summary)+'</p>'+
       '<a class="readmore" href="'+escapeAttr(url)+'" target="_blank" rel="noopener noreferrer" title="外部原文链接，可能需要访问境外站点">来源 ↗</a>';
+    card.addEventListener("click", function(){ openReader(it); });
+    const rm = card.querySelector(".readmore");
+    rm.addEventListener("click", function(e){ e.stopPropagation(); });
     grid.appendChild(card);
   });
   sec.appendChild(grid);mainEl.appendChild(sec);
 });
 function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 function escapeAttr(s){return escapeHtml(s);}
+function openReader(it){
+  const r=document.getElementById("reader");
+  const content=(it.content||"").trim();
+  const body=document.getElementById("readerBody");
+  if(content.length>0){
+    body.innerHTML=content.split(/\n{1,}/).map(function(p){p=p.trim();return p?'<p>'+escapeHtml(p)+'</p>':'';}).join("");
+  }else{
+    body.innerHTML='<p class="r-empty">暂未获取到该条新闻的全文镜像。'+(it.url?'可点击右下角「查看原文 ↗」前往原始报道。':'')+'</p>';
+  }
+  document.getElementById("readerTitle").textContent=it.title;
+  document.getElementById("readerSource").textContent=it.source;
+  const link=document.getElementById("readerLink");
+  if(it.url){link.href=it.url;link.style.display="";}else{link.style.display="none";}
+  r.hidden=false;document.body.style.overflow="hidden";
+}
+function closeReader(){const r=document.getElementById("reader");r.hidden=true;document.body.style.overflow="";}
+document.getElementById("reader").addEventListener("click",function(e){if(e.target===this)closeReader();});
+document.addEventListener("keydown",function(e){if(e.key==="Escape")closeReader();});
 </script>
 </body></html>

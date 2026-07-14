@@ -65,6 +65,28 @@
   footer{margin-top:36px;padding:26px 0 40px;border-top:1px solid var(--line);color:var(--muted);font-size:13px;text-align:center}
   footer a{color:#4f46e5;text-decoration:none}
   @media (max-width:560px){.hero h1{font-size:27px}.grid{grid-template-columns:1fr}.stat{min-width:0;flex:1 1 40%}}
+  /* 站内统一阅读面板 */
+  .card{cursor:pointer}
+  .reader-overlay{position:fixed;inset:0;z-index:60;background:rgba(18,20,32,.55);backdrop-filter:blur(3px);
+    display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;overflow:auto}
+  .reader-overlay[hidden]{display:none}
+  .reader{background:#fff;border-radius:18px;max-width:840px;width:100%;box-shadow:0 30px 80px rgba(0,0,0,.32);
+    display:flex;flex-direction:column;max-height:90vh;overflow:hidden;animation:pop .18s ease}
+  @keyframes pop{from{transform:translateY(8px) scale(.98);opacity:0}to{transform:none;opacity:1}}
+  .reader-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;
+    padding:20px 24px 14px;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff}
+  .reader-head h2{margin:0 0 8px;font-size:20px;line-height:1.45;font-weight:800}
+  .reader-head .chip{background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.3)}
+  .reader-x{background:rgba(255,255,255,.2);border:none;color:#fff;font-size:24px;line-height:1;
+    width:38px;height:38px;border-radius:10px;cursor:pointer;flex:0 0 auto}
+  .reader-x:hover{background:rgba(255,255,255,.34)}
+  .reader-body{padding:20px 24px;overflow:auto;color:#2a2f3a;font-size:15.5px;line-height:1.85}
+  .reader-body p{margin:0 0 14px}
+  .reader-body .r-empty{color:#6b7280;font-style:italic}
+  .reader-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+    padding:14px 24px 18px;border-top:1px solid var(--line);background:#fafbff}
+  .reader-foot .r-note{font-size:12.5px;color:var(--muted);max-width:62%}
+  .reader-foot .readmore{margin:0}
 </style>
 </head>
 <body>
@@ -83,8 +105,24 @@
     <div style="margin-top:8px;opacity:.85">说明：本条新闻的标题、摘要、来源、日期已<b>镜像保存在本页</b>；即便外部链接失效或无法访问境外站点，已存档内容仍可正常查看。</div>
   </footer>
   <a href="index.html" class="backhome" title="返回 AI资讯杂志 首页">📰 返回 AI资讯杂志</a>
+  <div class="reader-overlay" id="reader" hidden>
+    <div class="reader" role="dialog" aria-modal="true">
+      <div class="reader-head">
+        <div style="min-width:0">
+          <h2 id="readerTitle"></h2>
+          <span class="chip" id="readerSource"></span>
+        </div>
+        <button class="reader-x" onclick="closeReader()" aria-label="关闭">×</button>
+      </div>
+      <div class="reader-body" id="readerBody"></div>
+      <div class="reader-foot">
+        <span class="r-note">本文由 <b>AI资讯杂志</b> 整理镜像，原文版权归原作者所有 · 点击右侧按钮查看原始报道</span>
+        <a id="readerLink" class="readmore" target="_blank" rel="noopener noreferrer">查看原文 ↗</a>
+      </div>
+    </div>
+  </div>
 <script>
-const DATA = {"meta": {"reportDate": "2026-05-19", "reportDateHuman": "2026年5月19日", "weekday": "星期二", "total": 6, "source": "AI HOT", "sourceUrl": "https://aihot.virxact.com", "generatedAt": "2026年07月14日 17:28"}, "sections": [{"label": "产品发布/更新", "color": "#059669", "items": [{"seq": 1, "title": "阿里云推出HappyHorse视频生成模型", "source": "X：阿里云 / Alibaba Cloud (@alibaba_cloud)", "summary": "电影级AI现已到来。🐎💨 HappyHorse现已登陆Model Studio。从原始提示词到1080p多镜头现实感画…", "url": "https://x.com/alibaba_cloud/status/2056182152681644176", "publishedAt": "2026-05-19T00:00:00.000Z", "exact": false}, {"seq": 2, "title": "腾讯 AI 设计智能体 Ardot 公测：一句话生成可编辑设计稿，一键转代码", "source": "IT之家（RSS）", "summary": "腾讯云正式公测自研AI设计智能体平台Ardot。该平台核心功能包括：用户通过一句话指令即可生成App页面、官网、海报等…", "url": "https://www.ithome.com/0/951/677.htm", "publishedAt": "2026-05-19T00:00:00.000Z", "exact": false}, {"seq": 3, "title": "一键生成韩国棒球AI视频模板爆火", "source": "X：PixVerse (@PixVerse_)", "summary": "那个热狗需要自己的座位 [引用 @MrDasOnX]：这可能是最简单的病毒式AI编辑。 PixVerse → 上传自拍…", "url": "https://x.com/PixVerse_/status/2056198882321904098", "publishedAt": "2026-05-19T00:00:00.000Z", "exact": false}]}, {"label": "行业动态", "color": "#d97706", "items": [{"seq": 4, "title": "人机快递分拣对决直播", "source": "X：小互 (@xiaohu)", "summary": "Figure 直播机器人 VS 人类 挑战 快递分拣任务 目前人类稍稍领先…😌", "url": "https://x.com/xiaohu/status/2056172740873511139", "publishedAt": "2026-05-19T00:00:00.000Z", "exact": false}]}, {"label": "技巧与观点", "color": "#0284c7", "items": [{"seq": 5, "title": "开源工具揭露AI API中转站安全风险与检测差异", "source": "X：Berry Xia (@berryxia)", "summary": "针对AI API中转站可能存在的“掺水”、“造假”等安全风险，开源项目api-relay-audit通过双论文锚定路线…", "url": "https://x.com/berryxia/status/2056173473588994392", "publishedAt": "2026-05-19T00:00:00.000Z", "exact": false}, {"seq": 6, "title": "Hermes 可配置的国内外 AI 模型及使用方法", "source": "X：Vista (@vista8)", "summary": "Hermes 支持配置多种国内外主流 AI 模型，包括 OpenAI GPT-5.5、xAI Grok-4.3、谷歌 …", "url": "https://x.com/vista8/status/2056170241147977741", "publishedAt": "2026-05-19T00:00:00.000Z", "exact": false}]}]};
+const DATA = {"meta": {"reportDate": "2026-05-19", "reportDateHuman": "2026年5月19日", "weekday": "星期二", "total": 6, "source": "AI HOT", "sourceUrl": "https://aihot.virxact.com", "generatedAt": "2026年07月14日 17:28"}, "sections": [{"label": "产品发布/更新", "color": "#059669", "items": [{"seq": 1, "title": "阿里云推出HappyHorse视频生成模型", "source": "X：阿里云 / Alibaba Cloud (@alibaba_cloud)", "summary": "电影级AI现已到来。🐎💨 HappyHorse现已登陆Model Studio。从原始提示词到1080p多镜头现实感画…", "url": "https://x.com/alibaba_cloud/status/2056182152681644176", "publishedAt": "2026-05-19T00:00:00.000Z", "exact": false, "content": "Cinematic AI is here. 🐎💨\nHappyHorse is now on Model Studio. From raw prompt to 1080p multi-shot reality—experience the future of video generation in one unified workflow. No friction. Just pure performance.\n🔥 LIMITED TIME: 20% OFF. Watch the demos and start building today.\nAccess now: int.alibabacloud.com/m/1000412936/"}, {"seq": 2, "title": "腾讯 AI 设计智能体 Ardot 公测：一句话生成可编辑设计稿，一键转代码", "source": "IT之家（RSS）", "summary": "腾讯云正式公测自研AI设计智能体平台Ardot。该平台核心功能包括：用户通过一句话指令即可生成App页面、官网、海报等…", "url": "https://www.ithome.com/0/951/677.htm", "publishedAt": "2026-05-19T00:00:00.000Z", "exact": false, "content": "IT之家 5 月 18 日消息，腾讯云今日宣布，腾讯自研 AI 设计智能体平台 Ardot 正式公测，官方称其为“一个 AI 驱动的产设研协作平台”。\nIT之家获悉，Ardot 支持一句话生成可编辑设计稿，AI 可快速生成 App 页面、官网、海报、插画、PPT 等；支持调用团队自己的业务组件库，一键生成符合规范的可编辑稿；支持直接导入 Figma 文件，完整保留原有布局、样式和组件。\n官方表示，Ardot 对代码友好，支持设计一键转代码。设计稿，连同变量、组件、布局数据等设计细节数据，直接拉进 CodeBuddy，一键代码还原；也兼容 Workbuddy、Cursor、Claude Code 等 MCP IDE。\nArdot 支持多人在线实时评论、标注反馈和版本对比，配备智能权限中心、全方位行为追溯和无缝交接机制，确保协作规范、有序。此外，Ardot 微信小程序也即将上线。\n广告声明：文内含有的对外跳转链接（包括不限于超链接、二维码、口令等形式），用于传递更多信息，节省甄选时间，结果仅供参考，IT之家所有文章均包含本声明。"}, {"seq": 3, "title": "一键生成韩国棒球AI视频模板爆火", "source": "X：PixVerse (@PixVerse_)", "summary": "那个热狗需要自己的座位 [引用 @MrDasOnX]：这可能是最简单的病毒式AI编辑。 PixVerse → 上传自拍…", "url": "https://x.com/PixVerse_/status/2056198882321904098", "publishedAt": "2026-05-19T00:00:00.000Z", "exact": false, "content": ""}]}, {"label": "行业动态", "color": "#d97706", "items": [{"seq": 4, "title": "人机快递分拣对决直播", "source": "X：小互 (@xiaohu)", "summary": "Figure 直播机器人 VS 人类 挑战 快递分拣任务 目前人类稍稍领先…😌", "url": "https://x.com/xiaohu/status/2056172740873511139", "publishedAt": "2026-05-19T00:00:00.000Z", "exact": false, "content": "Figure 直播机器人 VS 人类 \n挑战\n快递分拣工作\n目前人类稍稍领先…😌"}]}, {"label": "技巧与观点", "color": "#0284c7", "items": [{"seq": 5, "title": "开源工具揭露AI API中转站安全风险与检测差异", "source": "X：Berry Xia (@berryxia)", "summary": "针对AI API中转站可能存在的“掺水”、“造假”等安全风险，开源项目api-relay-audit通过双论文锚定路线…", "url": "https://x.com/berryxia/status/2056173473588994392", "publishedAt": "2026-05-19T00:00:00.000Z", "exact": false, "content": "前几天大家一起聊中转站的“暴利”、“捡钱”、“掺水”、“造假”等等\n但是，有个核心问题，我给小菜鸟如何判断呢？\n这不巧了韭二（以下简称92）把他搞了个项目，还特么开源了。\n他最近把2026年中文市场涌现的三个AI API中转站安全检测工具全部跑了一遍。  \n他发现一个让人大跌眼镜的事儿：你花钱买的“直连”Claude或GPT，很可能早已被安静地动手脚。  \n92对比了三款工具的核心检测能力、方法论和透明度后，发现差距极大。  \n开源工具api-relay-audit走的是双论文锚定路线，把AC-1工具调用改写、AC-2错误响应泄漏、上下文截断等常见攻击全部拆成可验证步骤，每一步都给出clean/anomaly/inconclusive三态判定，还自带透明日志。  \nhvoy. ai更适合小白用户，cctest. ai则主打一键黑盒检测，但完全闭源。  \n92认为，最靠谱的还是api-relay-audit的透明度和可审计性，安全工具本身必须可被审计。  \n他把完整对比、方法论、短板和功能速查表写成一篇长文，并把自己的工具完全开源。  \n感兴趣的可以安装，地址评论区。\n记得给给他一颗Star～"}, {"seq": 6, "title": "Hermes 可配置的国内外 AI 模型及使用方法", "source": "X：Vista (@vista8)", "summary": "Hermes 支持配置多种国内外主流 AI 模型，包括 OpenAI GPT-5.5、xAI Grok-4.3、谷歌 …", "url": "https://x.com/vista8/status/2056170241147977741", "publishedAt": "2026-05-19T00:00:00.000Z", "exact": false, "content": "Hermes 目前值得配置的国内外模型：\n1. 订阅ChatGPT plus或以上，用 OpenAI Codex 的Auth 配置 gpt-5.5\n2. xAI如果买了Premium，可以配置 grok-4.3\n3. 谷歌 Gemini 订阅或免费账号，配置 gemini-3.1-pro-preview 和 gemini-3-flash-preview\n4. DeepSeek 官网 API 配置 deepseek-v4-pro 和 deepseek-v4-flash\n5. 智谱官网 API 配置 glm-5.1 和 glm-5-turbo\n6. Kimi 官网 API 或开发套餐配置 kimi-k2.6\n7.  小米官网 API或开发套餐，配置 mimo-v2.5-pro\n配置后，Hermes可跟机器人对话切换模型，指令如下：\n/model gpt-5.5 --provider openai-codex\n/model grok-4.3 --provider xai-oauth\n/model gemini-3.1-pro-preview --provider google-gemini-cli\n/model kimi-k2.6 --provider kimi-coding-cn\n/model deepseek-v4-pro --provider deepseek\n/model mimo-v2.5-pro —provider xiaomi"}]}]};
 function pad(n){return n<10?"0"+n:""+n;}
 function toBeijingHuman(iso, ref, exact){
   const d=new Date(iso); const bj=new Date(d.getTime()+8*3600*1000);
@@ -118,11 +156,32 @@ sections.forEach((s,i)=>{
       '<h3>'+escapeHtml(it.title)+'</h3><span class="chip">'+escapeHtml(it.source)+'</span>'+
       '<p class="summary">'+escapeHtml(it.summary)+'</p>'+
       '<a class="readmore" href="'+escapeAttr(url)+'" target="_blank" rel="noopener noreferrer" title="外部原文链接，可能需要访问境外站点">来源 ↗</a>';
+    card.addEventListener("click", function(){ openReader(it); });
+    const rm = card.querySelector(".readmore");
+    rm.addEventListener("click", function(e){ e.stopPropagation(); });
     grid.appendChild(card);
   });
   sec.appendChild(grid);mainEl.appendChild(sec);
 });
 function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 function escapeAttr(s){return escapeHtml(s);}
+function openReader(it){
+  const r=document.getElementById("reader");
+  const content=(it.content||"").trim();
+  const body=document.getElementById("readerBody");
+  if(content.length>0){
+    body.innerHTML=content.split(/\n{1,}/).map(function(p){p=p.trim();return p?'<p>'+escapeHtml(p)+'</p>':'';}).join("");
+  }else{
+    body.innerHTML='<p class="r-empty">暂未获取到该条新闻的全文镜像。'+(it.url?'可点击右下角「查看原文 ↗」前往原始报道。':'')+'</p>';
+  }
+  document.getElementById("readerTitle").textContent=it.title;
+  document.getElementById("readerSource").textContent=it.source;
+  const link=document.getElementById("readerLink");
+  if(it.url){link.href=it.url;link.style.display="";}else{link.style.display="none";}
+  r.hidden=false;document.body.style.overflow="hidden";
+}
+function closeReader(){const r=document.getElementById("reader");r.hidden=true;document.body.style.overflow="";}
+document.getElementById("reader").addEventListener("click",function(e){if(e.target===this)closeReader();});
+document.addEventListener("keydown",function(e){if(e.key==="Escape")closeReader();});
 </script>
 </body></html>
