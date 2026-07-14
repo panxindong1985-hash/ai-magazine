@@ -41,7 +41,7 @@ COMPANIES = [
     ("Meta",    "#0866ff", ["meta", "llama", "llama 3", "llama3"], "us"),
     ("Microsoft","#7c3aed", ["microsoft", "微软", "copilot", "bing"], "us"),
     ("xAI",     "#111827", ["xai", "grok"], "us"),
-    ("NVIDIA",  "#76b900", ["nvidia", "英伟达", "h100", "h200", "blackwell"], "us"),
+    ("NVIDIA",  "#76b900", ["nvidia", "英伟达"], "us"),
     ("深度求索", "#e11d48", ["deepseek", "深度求索"], "cn"),
     ("百度",     "#2932e1", ["百度", "文心", "ernie", "千帆"], "cn"),
     ("阿里",     "#ff6a00", ["阿里", "通义", "qwen", "千问"], "cn"),
@@ -88,6 +88,13 @@ MODELS = [
     ("Baichuan",   "百川",     ["baichuan", "百川"]),
     ("MiniMax 系列","MiniMax",  ["abab", "minimax", "minmax"]),
     ("星火",       "讯飞星火",  ["星火", "spark", "讯飞"]),
+    # ── NVIDIA ──
+    ("Nemotron",   "NVIDIA",    ["nemotron"]),
+    ("Cosmos",     "NVIDIA",    ["cosmos"]),
+    # ── 其它实验室基础 / 生成模型（daily-feed 归类用）──
+    ("Seed",       "字节",       ["seed"]),
+    ("Muse",       "Meta",      ["muse"]),
+    ("MAI",        "Microsoft", ["mai-thinking", "mai "]),
 ]
 COMP_MAP = {name: (color, region) for name, color, _, region in COMPANIES}
 
@@ -137,6 +144,10 @@ FAMILY = {
     "abab": "MiniMax 系列", "M2.5": "MiniMax 系列",
     # 讯飞星火
     "星火": "星火",
+    # NVIDIA
+    "Nemotron": "Nemotron 系列", "Cosmos": "Cosmos",
+    # 其它实验室
+    "Seed": "Seed", "Muse": "Muse", "MAI": "MAI",
 }
 
 # ── 模型评分（LMArena 文本榜 Arena Elo，2026-07 公开快照）──────────────────────
@@ -1038,9 +1049,9 @@ INDEX_TPL = r"""<!DOCTYPE html>
   .gbtn.active{color:#fff}
   .gbtn[data-kind=model].active{background:#4f46e5;border-color:#4f46e5}
   .gbtn[data-mode].active{background:#4f46e5;border-color:#4f46e5}
-  .glegend{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:#b91c1c;
-    background:#fef2f2;border:1px solid #fecaca;border-radius:999px;padding:7px 14px;user-select:none}
-  .glegend .lg-dot{width:11px;height:11px;border-radius:3px;background:#ef4444;display:inline-block}
+  .glegend{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:#4b5161;
+    background:#f6f7fb;border:1px solid var(--line);border-radius:999px;padding:7px 14px;user-select:none}
+  .glegend .lg-dot{width:11px;height:11px;border-radius:3px;display:inline-block}
   .gsep{width:1px;background:var(--line);margin:3px 4px}
   #ganttChart{width:100%;height:auto;display:block;cursor:grab}
   #ganttChart:active{cursor:grabbing}
@@ -1094,11 +1105,12 @@ INDEX_TPL = r"""<!DOCTYPE html>
   <section class="gantt wrap">
     <div class="trend-head">
       <h2>🗓️ 主要 AI 公司 模型发布 / 版本更新 时间线</h2>
-      <p class="trend-sub">🇺🇸美国 / 🇨🇳中国 / 🇫🇷法国 三阵营分块，每个模型单独成行，横向为日期。🔵蓝=模型发布，🔴红=重大更新；<b>纯模型视角</b>——仅收录模型发布 / 版本更新，不含产品 App、技术报告、登陆平台等非发布类事件。模型行按 LMArena 评分降序排列，行尾「评分条 + Arena Elo」为该系列最强公开版本分数（无公开分数者显示「—」）；行首数字为该模型事件数。历史基线（2020–2024）经网络核实，2025 起自动同步 AI HOT 每日日报「模型发布/更新」版块，新模型发布即自动入图。</p>
+      <p class="trend-sub">🇺🇸美国 / 🇨🇳中国 / 🇫🇷法国 三阵营分块，每个模型单独成行，横向为日期。🔵蓝=模型大版本发布（如 3/4/5），🟢绿=子版本更新（如 3.2/4.1），🔴红=里程碑模型（评分极高的标杆，如 Seedance 2.0、GPT-5、Gemini 3）；<b>纯模型视角</b>——仅收录模型发布 / 版本更新，不含产品 App、技术报告、登陆平台等非发布类事件。模型行按 LMArena 评分降序排列，行尾「评分条 + Arena Elo」为该系列最强公开版本分数（无公开分数者显示「—」）；行首数字为该模型事件数。历史基线（2020–2024）经网络核实，2025 起自动同步 AI HOT 每日日报「模型发布/更新」版块，新模型发布即自动入图。</p>
     </div>
     <div class="gantt-ctrl">
-      <button class="gbtn active" data-kind="model">🔵 模型发布</button>
-      <span class="glegend"><i class="lg-dot"></i>重大模型发布 / 更新 / 里程碑</span>
+      <span class="glegend"><i class="lg-dot" style="background:#4f46e5"></i>模型大版本（3/4/5）</span>
+      <span class="glegend"><i class="lg-dot" style="background:#059669"></i>子版本更新（3.2/4.1）</span>
+      <span class="glegend"><i class="lg-dot" style="background:#ef4444"></i>里程碑模型</span>
       <span class="gsep"></span>
       <span style="align-self:center;font-size:12.5px;color:var(--muted)">标记：</span>
       <button class="gbtn active" data-mode="block">▮ 方块</button>
@@ -1290,7 +1302,10 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
   function bandLabelAtUnits(u){ u=Math.max(0,Math.min(totalUnits,u));
     for(let i=BANDS.length-1;i>=0;i--){ if(u>=cumBeforeB[BANDS[i].label]) return BANDS[i].label; } return BANDS[0].label; }
   const kindColor={model:"#4f46e5",product:"#059669"};
-  const MAJOR="#ef4444";                       // 重大模型更新 红
+  const BLUE="#4f46e5", GREEN="#059669", MAJOR="#ef4444";   // 蓝=大版本 绿=子版本 红=里程碑
+  const MILESTONE_FAMS=new Set(["GPT","Gemini","Claude","Llama","DeepSeek 系列","Grok","Seedance"]);
+  // 版本层级：从标题解析首个版本号，x.y（y≠0）视为子版本→绿，整数或 x.0 视为大版本→蓝/红
+  function versionTier(title){ const m=String(title||"").match(/(\d+)(?:\.(\d+))?/); if(!m) return "major"; const minor=m[2]?parseInt(m[2],10):0; return minor!==0?"minor":"major"; }
   const kindText={model:"模型发布",product:"产品更新"};
   const show={model:true,product:true};
   let markerMode="block";   // block（方块）| dot（圆点）| bar（竖条）
@@ -1404,7 +1419,8 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
         arr.forEach((e,i)=>{
           let x = n>1 ? lo + (i/(n-1))*(hi-lo) : (lo+hi)/2;
           if(x<L-10) x=L-10; if(x>W-R+10) x=W-R+10;
-          const col = (e.kind==="model" && e.major) ? MAJOR : kindColor[e.kind];
+          const tier = versionTier(e.title);
+          const col = tier==="minor" ? GREEN : (MILESTONE_FAMS.has(m.name) ? MAJOR : BLUE);
           const j=JSON.stringify({t:e.title,d:e.date,k:e.kind,s:e.source,f:e.file})
             .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
           if(markerMode==="dot"){
@@ -1612,6 +1628,8 @@ def compute_gantt(arch=None, top_n=GANTT_TOP_N):
                         model = mname
                         break
                 fam = FAMILY.get(model, model)
+                if model == comp:        # 仅命中公司、未命中具体模型 → 跳过（避免公司名兜底行/污染）
+                    continue
                 sig = (comp, d, title)
                 if sig in seen:
                     continue
