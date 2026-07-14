@@ -1038,7 +1038,9 @@ INDEX_TPL = r"""<!DOCTYPE html>
   .gbtn.active{color:#fff}
   .gbtn[data-kind=model].active{background:#4f46e5;border-color:#4f46e5}
   .gbtn[data-mode].active{background:#4f46e5;border-color:#4f46e5}
-  .gbtn#ganttMajor.active{background:#d97706;border-color:#d97706}
+  .glegend{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:#b91c1c;
+    background:#fef2f2;border:1px solid #fecaca;border-radius:999px;padding:7px 14px;user-select:none}
+  .glegend .lg-dot{width:11px;height:11px;border-radius:3px;background:#ef4444;display:inline-block}
   .gsep{width:1px;background:var(--line);margin:3px 4px}
   #ganttChart{width:100%;height:auto;display:block;cursor:grab}
   #ganttChart:active{cursor:grabbing}
@@ -1096,7 +1098,7 @@ INDEX_TPL = r"""<!DOCTYPE html>
     </div>
     <div class="gantt-ctrl">
       <button class="gbtn active" data-kind="model">🔵 模型发布</button>
-      <button class="gbtn active" id="ganttMajor">⚡ 仅重要（过滤次要微调）</button>
+      <span class="glegend"><i class="lg-dot"></i>重大模型发布 / 更新 / 里程碑</span>
       <span class="gsep"></span>
       <span style="align-self:center;font-size:12.5px;color:var(--muted)">标记：</span>
       <button class="gbtn active" data-mode="block">▮ 方块</button>
@@ -1292,7 +1294,7 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
   const kindText={model:"模型发布",product:"产品更新"};
   const show={model:true,product:true};
   let markerMode="block";   // block（方块）| dot（圆点）| bar（竖条）
-  let majorOnly=true;       // true=仅重要（过滤次要的模型微调 / 产品小更新）
+  let majorOnly=true;       // 常开：过滤次要模型微调（无切换按钮，时间线仅保留重要事件）
   const tip=document.getElementById("ganttTip");
   const rangeLabel=document.getElementById("ganttRange");
   const RATE_MIN=1250, RATE_MAX=1530;   // 评分条色阶范围（LMArena Elo）
@@ -1493,9 +1495,6 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
       b.classList.add("active"); render();
     });
   });
-  // 仅重要产品更新（过滤次要小更新）
-  const mb=document.getElementById("ganttMajor");
-  if(mb) mb.addEventListener("click",()=>{ majorOnly=!majorOnly; mb.classList.toggle("active",majorOnly); render(); });
   // 重置视图
   const rb=document.getElementById("ganttReset");
   if(rb) rb.addEventListener("click",()=>{ viewStart=0; viewUnits=totalUnits; render(); });
