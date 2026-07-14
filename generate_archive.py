@@ -77,6 +77,40 @@ MODELS = [
 ]
 COMP_MAP = {name: (color, region) for name, color, _, region in COMPANIES}
 
+# 模型归族：把同一模型系列的不同大版本合并到「同一行」，时间线上沿年份线性呈现。
+# 例：GPT-3 / GPT-4 / GPT-4o / GPT-5 同属 GPT 一行；Claude 1→4 同属 Claude 一行。
+# 未在此表中的具体模型名原样成行；命中公司名（即未匹配到具体模型的兜底）直接剔除。
+FAMILY = {
+    # OpenAI
+    "GPT-3": "GPT", "GPT-4": "GPT", "GPT-4o": "GPT", "GPT-4.5": "GPT",
+    "GPT-4.1": "GPT", "gpt-oss": "GPT", "ChatGPT": "GPT", "GPT-5": "GPT",
+    "o3 / o4": "OpenAI o 系列", "Sora": "Sora", "DALL·E 3": "DALL·E",
+    # Anthropic
+    "Claude": "Claude",
+    # Google
+    "Gemini": "Gemini", "Gemma": "Gemma", "Veo": "Veo", "Bard": "Gemini",
+    # Meta
+    "Llama": "Llama",
+    # xAI
+    "Grok": "Grok",
+    # DeepSeek
+    "DeepSeek": "DeepSeek 系列",
+    # Microsoft
+    "Copilot": "Copilot",
+    # 百度
+    "文心 ERNIE": "文心 ERNIE",
+    # 阿里
+    "通义千问": "通义千问 Qwen",
+    # 腾讯
+    "混元": "混元",
+    # 字节
+    "豆包": "豆包", "即梦": "即梦", "Seedance": "Seedance", "Coze 扣子": "Coze 扣子",
+    # 智谱
+    "智谱 GLM": "智谱 GLM",
+    # 月之暗面
+    "Kimi": "Kimi",
+}
+
 # ── 历史里程碑（2020–2026 模型发布 / 重大产品版本更新）───────────────────────
 # 经网络核实的主要 AI 模型与产品发布时间线；仅收录「模型发布」与「产品版本更新」，
 # 不收录融资 / 合作 / 研究论文 / 榜单等非发布类事件。
@@ -1032,8 +1066,8 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
     reg.models.forEach(m=>{ (byComp[m.company]=byComp[m.company]||[]).push(m); });
     Object.keys(byComp).forEach(comp=>{
       const all=byComp[comp];
-      // 若有具体模型，保留“其他”兜底行；若只有兜底模型，则隐藏该行（公司头已代表全部事件）
-      const vis=all.filter(m=> m.name!=="其他" || all.length>1);
+      // 所有行均为「具体模型族」，无“其他”兜底；直接全部展示
+      const vis=all;
       rows.push({type:"c",company:comp,color:(all[0]||{}).color||"#888",all:all,models:vis});
       vis.forEach(m=> rows.push({type:"m",m}));
     });
@@ -1122,9 +1156,11 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
     // 2) 时间轴刻度：跨度 > 2 年用「年视图」（年份标签 + 淡月线），否则「月视图」
     const spanDays=(dom1-dom0)/DAY;
     if(spanDays>730){
+      // 年份标签置于绘图区上方留白带，竖线从绘图区顶部向下画，避免数字被线割裂
+      h+=`<rect x="${L}" y="0" width="${W-L-R}" height="${T}" fill="#ffffff"/>`;
       yearTicks().forEach(yt=>{ const x=xAt(yt); if(x<L-0.5||x>W-R+0.5) return;
         h+=`<line x1="${x.toFixed(1)}" y1="${T}" x2="${x.toFixed(1)}" y2="${plotBottom.toFixed(1)}" stroke="#d7dbe6"/>`;
-        h+=`<text x="${(x+3).toFixed(1)}" y="${(T+13).toFixed(1)}" text-anchor="start" font-size="11" font-weight="800" fill="#6b7280">${new Date(yt).getUTCFullYear()}</text>`;
+        h+=`<text x="${(x+4).toFixed(1)}" y="${(T-4).toFixed(1)}" text-anchor="start" font-size="11" font-weight="800" fill="#6b7280">${new Date(yt).getUTCFullYear()}</text>`;
       });
       ticks().forEach(ms=>{ const x=xAt(ms); if(x<L-0.5||x>W-R+0.5) return;
         h+=`<line x1="${x.toFixed(1)}" y1="${T}" x2="${x.toFixed(1)}" y2="${plotBottom.toFixed(1)}" stroke="#f0f2f7"/>`;
@@ -1305,10 +1341,14 @@ def compute_gantt(arch, top_n=GANTT_TOP_N):
                     if mcomp == comp and any(k in text for k in mkws):
                         model = mname
                         break
-                key = (comp, model)
+                # 归族：同一系列不同大版本合并到一行；若未命中具体模型（等于公司名）则剔除，不进时间线
+                family = FAMILY.get(model, model)
+                if family == comp:
+                    continue
+                key = (comp, family)
                 g = groups.get(key)
                 if not g:
-                    g = {"company": comp, "name": model, "color": ccolor,
+                    g = {"company": comp, "name": family, "color": ccolor,
                          "region": cregion, "events": []}
                     groups[key] = g
                 g["events"].append({
@@ -1326,10 +1366,13 @@ def compute_gantt(arch, top_n=GANTT_TOP_N):
         if comp not in COMP_MAP:
             continue
         ccolor, cregion = COMP_MAP[comp]
-        key = (comp, mst["m"])
+        fam = FAMILY.get(mst["m"], mst["m"])
+        if fam == comp:   # 兜底保护：避免公司名直接成行
+            continue
+        key = (comp, fam)
         g = groups.get(key)
         if not g:
-            g = {"company": comp, "name": mst["m"], "color": ccolor,
+            g = {"company": comp, "name": fam, "color": ccolor,
                  "region": cregion, "events": []}
             groups[key] = g
         g["events"].append({
@@ -1337,10 +1380,6 @@ def compute_gantt(arch, top_n=GANTT_TOP_N):
             "source": mst.get("src", "历史资料"), "file": "",
             "minor": False, "major": bool(mst.get("major")),
         })
-    # 把与公司同名的兜底模型改名为“其他”，避免左侧公司名重复显示
-    for g in groups.values():
-        if g["name"] == g["company"]:
-            g["name"] = "其他"
     regions = []
     for region in ("us", "cn"):
         models = [g for g in groups.values() if g["region"] == region]
