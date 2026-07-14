@@ -908,8 +908,11 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
     const byComp={};
     reg.models.forEach(m=>{ (byComp[m.company]=byComp[m.company]||[]).push(m); });
     Object.keys(byComp).forEach(comp=>{
-      rows.push({type:"c",company:comp,color:(byComp[comp][0]||{}).color||"#888",models:byComp[comp]});
-      byComp[comp].forEach(m=> rows.push({type:"m",m}));
+      const all=byComp[comp];
+      // 若有具体模型，保留“其他”兜底行；若只有兜底模型，则隐藏该行（公司头已代表全部事件）
+      const vis=all.filter(m=> m.name!=="其他" || all.length>1);
+      rows.push({type:"c",company:comp,color:(all[0]||{}).color||"#888",all:all,models:vis});
+      vis.forEach(m=> rows.push({type:"m",m}));
     });
   });
   let plotH=T; rows.forEach(r=> plotH += (r.type==="h"?headerH:(r.type==="c"?compH:rowH)));
@@ -969,8 +972,9 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
         h+=`<line x1="0" y1="${(y+compH).toFixed(1)}" x2="${W}" y2="${(y+compH).toFixed(1)}" stroke="#eceef4"/>`;
         h+=`<circle cx="13" cy="${(y+compH/2).toFixed(1)}" r="4" fill="${r.color}"/>`;
         h+=`<text x="23" y="${(y+compH/2+4).toFixed(1)}" font-size="11.5" font-weight="800" fill="#1f2430">${escapeHtml(comp)}</text>`;
-        const tot=r.models.reduce((a,m)=>a+visibleEvents(m).length,0);
-        h+=`<text x="${L-8}" y="${(y+compH/2+4).toFixed(1)}" text-anchor="end" font-size="10.5" fill="#9aa1b1">${r.models.length} 个模型 · ${tot} 次</text>`;
+        const tot=r.all.reduce((a,m)=>a+visibleEvents(m).length,0);
+        const countText=r.models.length?`${r.models.length} 个模型 · ${tot} 次`:`${tot} 次`;
+        h+=`<text x="${L-8}" y="${(y+compH/2+4).toFixed(1)}" text-anchor="end" font-size="10.5" fill="#9aa1b1">${countText}</text>`;
         y+=compH;
       } else {
         const m=r.m, y0=y;
@@ -1168,6 +1172,10 @@ def compute_gantt(arch, top_n=GANTT_TOP_N):
                     "minor": (is_minor_product(title) if kind == "product" else is_minor_model(title)),
                     "major": (kind == "model") and is_major_model(title),
                 })
+    # 把与公司同名的兜底模型改名为“其他”，避免左侧公司名重复显示
+    for g in groups.values():
+        if g["name"] == g["company"]:
+            g["name"] = "其他"
     regions = []
     for region in ("us", "cn"):
         models = [g for g in groups.values() if g["region"] == region]
