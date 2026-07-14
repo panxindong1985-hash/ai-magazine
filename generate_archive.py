@@ -353,6 +353,8 @@ MILESTONES = [
     {"d":"2026-04-23","c":"腾讯","m":"混元","k":"model","t":"腾讯混元 Hy3 预览版发布","major":False,"src":"腾讯"},
     {"d":"2026-07-06","c":"腾讯","m":"混元","k":"model","t":"腾讯混元 Hy3 正式版发布","major":True,"src":"腾讯"},
     # ── Microsoft（美国）──
+    {"d":"2023-06-01","c":"Microsoft","m":"Microsoft","k":"model","t":"微软发布 Orca 小模型：通过模仿大模型推理链大幅提升小模型能力","major":False,"src":"Microsoft"},
+    {"d":"2024-04-23","c":"Microsoft","m":"Microsoft","k":"model","t":"微软发布 Phi-3 系列小语言模型（端侧 3.8B 参数达 SOTA）","major":True,"src":"Microsoft"},
     {"d":"2023-03-16","c":"Microsoft","m":"Copilot","k":"product","t":"Microsoft 365 Copilot 发布","major":False,"src":"Microsoft"},
     {"d":"2024-05-21","c":"Microsoft","m":"Copilot","k":"product","t":"Copilot+ PC / Copilot Studio 发布","major":False,"src":"Microsoft"},
 ]
@@ -1113,15 +1115,15 @@ INDEX_TPL = r"""<!DOCTYPE html>
   <section class="gantt wrap">
     <div class="trend-head">
       <h2>🗓️ 主要 AI 公司 模型发布 / 版本更新 时间线</h2>
-      <p class="trend-sub">🇺🇸美国 / 🇨🇳中国 / 🇫🇷法国 三阵营分块，每个模型单独成行，横向为日期。🔵蓝=模型大版本发布（如 3/4/5），🟢绿=子版本更新（如 3.2/4.1），🔴红=里程碑模型（评分极高的标杆，如 Seedance 2.0、GPT-5、Gemini 3）；<b>纯模型视角</b>——仅收录模型发布 / 版本更新，不含产品 App、技术报告、登陆平台等非发布类事件。模型行按 LMArena 评分降序排列，行尾「评分条 + Arena Elo」为该系列最强公开版本分数（无公开分数者显示「—」）；行首数字为该模型事件数。历史基线（2020–2024）经网络核实，2025 起自动同步 AI HOT 每日日报「模型发布/更新」版块，新模型发布即自动入图。</p>
+      <p class="trend-sub">🇺🇸美国 / 🇨🇳中国 / 🇫🇷法国 三阵营分块，每个模型单独成行，横向为日期。🔵蓝=模型版本发布，🟢绿=模型产品更新，🔴红=模型重磅更新；<b>纯模型视角</b>——仅收录模型发布 / 版本更新，不含产品 App、技术报告、登陆平台等非发布类事件。模型行按 LMArena 评分降序排列，行尾「评分条 + Arena Elo」为该系列最强公开版本分数（无公开分数者显示「—」）；行首数字为该模型事件数。历史基线（2020–2024）经网络核实，2025 起自动同步 AI HOT 每日日报「模型发布/更新」版块，新模型发布即自动入图。</p>
     </div>
     <div class="gantt-ctrl">
-      <span class="glegend" data-legend="blue" style="--lc:#4f46e5" title="点击仅显示模型大版本发布">
-        <i class="lg-dot" style="background:#4f46e5"></i>模型大版本（3/4/5）</span>
-      <span class="glegend" data-legend="green" style="--lc:#059669" title="点击仅显示子版本更新">
-        <i class="lg-dot" style="background:#059669"></i>子版本更新（3.2/4.1）</span>
-      <span class="glegend" data-legend="red" style="--lc:#ef4444" title="点击仅显示里程碑模型">
-        <i class="lg-dot" style="background:#ef4444"></i>里程碑模型</span>
+      <span class="glegend" data-legend="blue" style="--lc:#4f46e5" title="点击仅显示模型版本发布">
+        <i class="lg-dot" style="background:#4f46e5"></i>模型版本发布</span>
+      <span class="glegend" data-legend="green" style="--lc:#059669" title="点击仅显示模型产品更新">
+        <i class="lg-dot" style="background:#059669"></i>模型产品更新</span>
+      <span class="glegend" data-legend="red" style="--lc:#ef4444" title="点击仅显示模型重磅更新">
+        <i class="lg-dot" style="background:#ef4444"></i>模型重磅更新</span>
       <span class="gsep"></span>
       <span style="align-self:center;font-size:12.5px;color:var(--muted)">标记：</span>
       <button class="gbtn active" data-mode="block">▮ 方块</button>
@@ -1134,7 +1136,7 @@ INDEX_TPL = r"""<!DOCTYPE html>
       <svg id="ganttChart" preserveAspectRatio="xMidYMid meet" role="img" aria-label="主要 AI 公司模型与产品更新时间线"></svg>
       <div id="ganttTip"></div>
     </div>
-    <p class="trend-sub" style="margin-top:8px">提示：点击上方彩色图例（大版本 / 子版本 / 里程碑）可单独查看该类事件的甘特图，再点一次或「重置视图」恢复全部；在图上滚动鼠标滚轮可放大/缩小某一时间段，按住拖动可平移时间轴。</p>
+    <p class="trend-sub" style="margin-top:8px">提示：点击上方彩色图例（模型版本发布 / 模型产品更新 / 模型重磅更新）可单独查看该类事件的甘特图，再点一次或「重置视图」恢复全部；在图上滚动鼠标滚轮可放大/缩小某一时间段，按住拖动可平移时间轴。</p>
   </section>
   <main class="wrap">
     <div class="idx-head">
