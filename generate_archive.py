@@ -35,13 +35,10 @@ SECTIONS = [
 
 # 主要 AI 公司 → (别名关键词, 阵营)。阵营 region: "us"=美国 / "cn"=中国 / "eu"=欧洲公司（当前仅法国 Mistral，标题按其所属国家显示🇫🇷法国）；甘特图按阵营分块呈现，欧洲置底。
 COMPANIES = [
-    ("OpenAI",  "#10a37f", ["openai", "chatgpt", "sora"], "us"),
-    ("Anthropic","#d97706", ["anthropic", "claude"], "us"),
-    ("Google",  "#4285f4", ["google", "deepmind", "gemini", "gemma"], "us"),
-    ("Meta",    "#0866ff", ["meta", "llama", "llama 3", "llama3"], "us"),
-    ("Microsoft","#7c3aed", ["microsoft", "微软", "copilot", "bing"], "us"),
-    ("xAI",     "#111827", ["xai", "grok"], "us"),
-    ("NVIDIA",  "#76b900", ["nvidia", "英伟达"], "us"),
+    # ── 易在别家新闻中被提及、需优先识别的具体品牌（放前，降低被宽别名公司抢命中）──
+    ("Apple",    "#555555", ["apple", "苹果", "afm", "apple foundation"], "us"),
+    ("稀宇科技",  "#00bcd4", ["minimax", "minmax", "abab"], "cn"),
+    ("Thinking Machines", "#6d28d9", ["thinking machines", "thinking machine"], "us"),
     ("深度求索", "#e11d48", ["deepseek", "深度求索"], "cn"),
     ("百度",     "#2932e1", ["百度", "文心", "ernie", "千帆"], "cn"),
     ("阿里",     "#ff6a00", ["阿里", "通义", "qwen", "千问"], "cn"),
@@ -49,12 +46,18 @@ COMPANIES = [
     ("字节",     "#fe2c55", ["字节", "豆包", "coze", "扣子"], "cn"),
     ("智谱",     "#0ea5e9", ["智谱", "chatglm", "zhipu", "glm"], "cn"),
     ("月之暗面", "#8b5cf6", ["月之暗面", "moonshot", "kimi"], "cn"),
-    ("Mistral",  "#ff7000", ["mistral"], "eu"),
-    ("Amazon",   "#ff9900", ["amazon", "亚马逊", "bedrock", "nova", "titan"], "us"),
-    ("Apple",    "#555555", ["apple", "苹果"], "us"),
     ("百川",     "#c2185b", ["百川", "baichuan"], "cn"),
-    ("MiniMax",  "#00bcd4", ["minimax", "minmax", "abab"], "cn"),
     ("讯飞星火", "#0d9488", ["讯飞", "星火", "iflytek", "spark"], "cn"),
+    ("Mistral",  "#ff7000", ["mistral"], "eu"),
+    # ── 宽别名公司放后，减少误命中 ──
+    ("OpenAI",  "#10a37f", ["openai", "chatgpt", "sora"], "us"),
+    ("Anthropic","#d97706", ["anthropic", "claude"], "us"),
+    ("Google",  "#4285f4", ["google", "deepmind", "gemini", "gemma"], "us"),
+    ("Meta",    "#0866ff", ["meta", "llama", "llama 3", "llama3"], "us"),
+    ("Microsoft","#7c3aed", ["microsoft", "微软", "copilot", "bing"], "us"),
+    ("xAI",     "#111827", ["xai", "grok"], "us"),
+    ("NVIDIA",  "#76b900", ["nvidia", "英伟达"], "us"),
+    ("Amazon",   "#ff9900", ["amazon", "亚马逊", "bedrock", "nova", "titan"], "us"),
 ]
 # 主要模型清单：时间线「按模型分行」用。匹配顺序自上而下；未命中则退化为按公司聚合。
 # (模型名, 所属公司, [关键词小写])
@@ -86,7 +89,7 @@ MODELS = [
     ("Titan",      "Amazon",   ["titan"]),
     ("Apple 基础模型","Apple",  ["apple intelligence", "foundation model", "apple 基础", "apple foundation"]),
     ("Baichuan",   "百川",     ["baichuan", "百川"]),
-    ("MiniMax 系列","MiniMax",  ["abab", "minimax", "minmax"]),
+    ("MiniMax 系列","稀宇科技",["abab", "minimax", "minmax", "m2.7", "m2.5"]),
     ("星火",       "讯飞星火",  ["星火", "spark", "讯飞"]),
     # ── NVIDIA ──
     ("Nemotron",   "NVIDIA",    ["nemotron"]),
@@ -141,7 +144,7 @@ FAMILY = {
     # 百川
     "Baichuan": "Baichuan",
     # MiniMax
-    "abab": "MiniMax 系列", "M2.5": "MiniMax 系列",
+    "abab": "MiniMax 系列", "M2.5": "MiniMax 系列", "M2.7": "MiniMax 系列",
     # 讯飞星火
     "星火": "星火",
     # NVIDIA
@@ -300,10 +303,10 @@ MILESTONES = [
     {"d":"2023-06-15","c":"百川","m":"Baichuan","k":"model","t":"Baichuan-7B 中英文大模型发布","major":False,"src":"百川智能"},
     {"d":"2024-01-29","c":"百川","m":"Baichuan","k":"model","t":"Baichuan 3 超千亿参数大模型发布","major":False,"src":"百川智能"},
     {"d":"2024-05-22","c":"百川","m":"Baichuan","k":"model","t":"Baichuan 4 基座大模型发布","major":True,"src":"百川智能"},
-    # ── MiniMax（中国）──
-    {"d":"2024-01-15","c":"MiniMax","m":"abab","k":"model","t":"MiniMax abab6 全量发布（国内首个 MoE 大模型）","major":False,"src":"MiniMax"},
-    {"d":"2024-04-15","c":"MiniMax","m":"abab","k":"model","t":"MiniMax abab6.5 万亿参数 MoE 发布","major":False,"src":"MiniMax"},
-    {"d":"2026-02-11","c":"MiniMax","m":"M2.5","k":"model","t":"MiniMax M2.5 原生 Agent 生产级模型发布","major":True,"src":"MiniMax"},
+    # ── 稀宇科技 / MiniMax（中国）──
+    {"d":"2024-01-15","c":"稀宇科技","m":"abab","k":"model","t":"MiniMax abab6 全量发布（国内首个 MoE 大模型）","major":False,"src":"稀宇科技"},
+    {"d":"2024-04-15","c":"稀宇科技","m":"abab","k":"model","t":"MiniMax abab6.5 万亿参数 MoE 发布","major":False,"src":"稀宇科技"},
+    {"d":"2026-02-11","c":"稀宇科技","m":"M2.5","k":"model","t":"MiniMax M2.5 原生 Agent 生产级模型发布","major":True,"src":"稀宇科技"},
     # ── 讯飞星火（中国）──
     {"d":"2023-05-06","c":"讯飞星火","m":"星火","k":"model","t":"讯飞星火大模型 V1.0 发布","major":True,"src":"科大讯飞"},
     {"d":"2023-10-24","c":"讯飞星火","m":"星火","k":"model","t":"讯飞星火 V3.0 发布","major":False,"src":"科大讯飞"},
@@ -1640,8 +1643,6 @@ def compute_gantt(arch=None, top_n=GANTT_TOP_N):
             continue
         ccolor, cregion = COMP_MAP[comp]
         fam = FAMILY.get(mst["m"], mst["m"])
-        if mst["m"] == comp:   # 兜底桶（公司名 == 模型名）剔除
-            continue
         _add(comp, ccolor, cregion, fam, mst["d"], mst["k"], mst["t"],
              mst.get("src", "历史资料"), "", False, bool(mst.get("major")))
     # ── 来源二：每日日报「模型发布/更新」版块（自动更新，严格过滤）──
@@ -1672,8 +1673,6 @@ def compute_gantt(arch=None, top_n=GANTT_TOP_N):
                         model = mname
                         break
                 fam = FAMILY.get(model, model)
-                if model == comp:        # 仅命中公司、未命中具体模型 → 跳过（避免公司名兜底行/污染）
-                    continue
                 sig = (comp, d, title)
                 if sig in seen:
                     continue
