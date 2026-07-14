@@ -57,6 +57,20 @@ def translate_en_zh(text):
 def save(arch):
     json.dump(arch, open(ARCH, "w", encoding="utf-8"), ensure_ascii=False)
 
+import subprocess
+def git_sync():
+    """增量翻译落盘后，自动提交并推送部署（SSH remote）。失败不影响续翻循环。"""
+    try:
+        cwd = "/Users/xiaosongguo/ai-daily"
+        subprocess.run(["git", "add", "-A"], check=True, cwd=cwd)
+        if subprocess.run(["git", "diff", "--cached", "--quiet"], cwd=cwd).returncode == 0:
+            return  # 无变化
+        subprocess.run(["git", "commit", "-q", "-m", "自动续翻：增量更新中文翻译"], check=True, cwd=cwd)
+        subprocess.run(["git", "push", "origin", "main"], check=True, cwd=cwd)
+        print("[续翻] 已提交并推送部署 ✅", flush=True)
+    except Exception as e:
+        print(f"[续翻] git 同步失败（忽略，下次重试）: {e}", flush=True)
+
 def healthy():
     try:
         gtrans_one("test")
@@ -104,6 +118,7 @@ def main():
         if not todos:
             print("[续翻] 全部完成 ✅", flush=True)
             save(arch)
+            git_sync()
             break
         # 等待 Google 解除限流
         while not healthy():
@@ -115,6 +130,7 @@ def main():
         if not todos:
             print("[续翻] 全部完成 ✅", flush=True)
             save(arch)
+            git_sync()
             break
         print(f"[续翻] Google 可用，本轮翻译 {len(todos[:150])} 条（礼貌并发 2）", flush=True)
         batch = todos[:150]
@@ -131,6 +147,7 @@ def main():
                     save(arch)
                     print(f"     {done}/{len(batch)} 已落盘", flush=True)
         save(arch)
+        git_sync()
         print(f"[续翻] 本轮完成，剩余 {len(collect())} 条", flush=True)
         time.sleep(3)
 

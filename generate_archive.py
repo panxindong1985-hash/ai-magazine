@@ -76,6 +76,93 @@ MODELS = [
     ("Kimi",      "月之暗面",   ["kimi", "moonshot"]),
 ]
 COMP_MAP = {name: (color, region) for name, color, _, region in COMPANIES}
+
+# ── 历史里程碑（2020–2026 模型发布 / 重大产品版本更新）───────────────────────
+# 经网络核实的主要 AI 模型与产品发布时间线；仅收录「模型发布」与「产品版本更新」，
+# 不收录融资 / 合作 / 研究论文 / 榜单等非发布类事件。
+# 字段：d=日期, c=公司(须匹配 COMPANIES), m=模型/产品名(与 daily-feed 行对齐),
+#       k=model|product, t=标题, major=是否重大发布(时间线红色高亮), src=来源。
+MILESTONES = [
+    # ── OpenAI ──
+    {"d":"2020-06-11","c":"OpenAI","m":"GPT-3","k":"model","t":"GPT-3 发布（1750亿参数，Few-shot 里程碑）","major":True,"src":"OpenAI / 维基"},
+    {"d":"2022-11-30","c":"OpenAI","m":"ChatGPT","k":"product","t":"ChatGPT 发布（基于 GPT-3.5 的对话产品）","major":True,"src":"OpenAI"},
+    {"d":"2023-03-14","c":"OpenAI","m":"GPT-4","k":"model","t":"GPT-4 发布（多模态，GPT-4 Turbo 于 11 月更新）","major":True,"src":"OpenAI"},
+    {"d":"2023-10-19","c":"OpenAI","m":"DALL·E 3","k":"product","t":"DALL·E 3 在 ChatGPT 中可用","major":False,"src":"OpenAI"},
+    {"d":"2024-05-13","c":"OpenAI","m":"GPT-4o","k":"model","t":"GPT-4o 发布（原生多模态 omni 模型）","major":True,"src":"OpenAI"},
+    {"d":"2024-09-12","c":"OpenAI","m":"o3 / o4","k":"model","t":"OpenAI o1 推理模型预览发布","major":False,"src":"OpenAI"},
+    {"d":"2024-12-05","c":"OpenAI","m":"o3 / o4","k":"model","t":"OpenAI o1 正式版发布","major":False,"src":"OpenAI"},
+    {"d":"2024-12-09","c":"OpenAI","m":"Sora","k":"product","t":"Sora 视频生成模型公开发布","major":False,"src":"OpenAI"},
+    {"d":"2025-02-27","c":"OpenAI","m":"GPT-4.5","k":"model","t":"GPT-4.5 发布","major":False,"src":"OpenAI"},
+    {"d":"2025-04-14","c":"OpenAI","m":"GPT-4o","k":"model","t":"GPT-4.1 系列发布（API，含 mini/nano）","major":False,"src":"OpenAI"},
+    {"d":"2025-08-05","c":"OpenAI","m":"GPT-4o","k":"model","t":"gpt-oss-120B/20B 开放权重发布","major":False,"src":"OpenAI"},
+    {"d":"2025-08-07","c":"OpenAI","m":"GPT-5","k":"model","t":"GPT-5 发布（整合 o3 推理，免费开放）","major":True,"src":"OpenAI"},
+    # ── Anthropic ──
+    {"d":"2023-03-14","c":"Anthropic","m":"Claude","k":"model","t":"Claude 1 首次公开发布","major":False,"src":"Anthropic"},
+    {"d":"2023-07-11","c":"Anthropic","m":"Claude","k":"model","t":"Claude 2 发布（首个面向公众）","major":False,"src":"Anthropic"},
+    {"d":"2023-11-21","c":"Anthropic","m":"Claude","k":"model","t":"Claude 2.1 发布（上下文扩至 200K）","major":False,"src":"Anthropic"},
+    {"d":"2024-03-04","c":"Anthropic","m":"Claude","k":"model","t":"Claude 3 系列发布（Opus/Sonnet/Haiku）","major":True,"src":"Anthropic"},
+    {"d":"2024-06-20","c":"Anthropic","m":"Claude","k":"model","t":"Claude 3.5 Sonnet 发布","major":False,"src":"Anthropic"},
+    {"d":"2025-02-24","c":"Anthropic","m":"Claude","k":"model","t":"Claude 3.7 Sonnet 发布（混合推理）","major":False,"src":"Anthropic"},
+    {"d":"2025-05-22","c":"Anthropic","m":"Claude","k":"model","t":"Claude 4（Opus / Sonnet）发布","major":True,"src":"Anthropic"},
+    # ── Google ──
+    {"d":"2023-03-21","c":"Google","m":"Bard","k":"product","t":"Bard 对话式 AI 产品发布","major":False,"src":"Google"},
+    {"d":"2023-12-06","c":"Google","m":"Gemini","k":"model","t":"Gemini 1.0 发布（Ultra/Pro/Nano）","major":True,"src":"Google"},
+    {"d":"2024-02-15","c":"Google","m":"Gemini","k":"model","t":"Gemini 1.5 发布（百万 token 上下文）","major":False,"src":"Google"},
+    {"d":"2024-02-21","c":"Google","m":"Gemma","k":"model","t":"Gemma 1 开放模型发布","major":False,"src":"Google"},
+    {"d":"2024-05-14","c":"Google","m":"Veo","k":"product","t":"Veo 视频生成模型发布","major":False,"src":"Google"},
+    {"d":"2024-06-01","c":"Google","m":"Gemma","k":"model","t":"Gemma 2 发布","major":False,"src":"Google"},
+    {"d":"2024-12-11","c":"Google","m":"Gemini","k":"model","t":"Gemini 2.0 亮相（agentic 能力）","major":False,"src":"Google"},
+    {"d":"2025-02-05","c":"Google","m":"Gemini","k":"model","t":"Gemini 2.0 正式版（GA）","major":False,"src":"Google"},
+    {"d":"2025-03-25","c":"Google","m":"Gemini","k":"model","t":"Gemini 2.5 Pro 实验版首秀","major":False,"src":"Google"},
+    {"d":"2025-06-17","c":"Google","m":"Gemini","k":"model","t":"Gemini 2.5 Pro / Flash 全面开放（GA）","major":False,"src":"Google"},
+    {"d":"2025-11-18","c":"Google","m":"Gemini","k":"model","t":"Gemini 3 发布（Pro / Deep Think）","major":True,"src":"Google"},
+    # ── Meta ──
+    {"d":"2023-02-24","c":"Meta","m":"Llama","k":"model","t":"Llama 1 开源发布","major":False,"src":"Meta"},
+    {"d":"2023-07-18","c":"Meta","m":"Llama","k":"model","t":"Llama 2 开源可商用发布","major":False,"src":"Meta"},
+    {"d":"2024-04-18","c":"Meta","m":"Llama","k":"model","t":"Llama 3 发布（8B/70B）","major":True,"src":"Meta"},
+    {"d":"2024-07-23","c":"Meta","m":"Llama","k":"model","t":"Llama 3.1 发布（405B 旗舰）","major":False,"src":"Meta"},
+    {"d":"2024-09-25","c":"Meta","m":"Llama","k":"model","t":"Llama 3.2 发布（视觉/边缘模型）","major":False,"src":"Meta"},
+    {"d":"2025-04-05","c":"Meta","m":"Llama","k":"model","t":"Llama 4 发布（MoE 原生多模态）","major":True,"src":"Meta"},
+    # ── xAI ──
+    {"d":"2023-11-04","c":"xAI","m":"Grok","k":"model","t":"Grok 1 发布","major":False,"src":"xAI"},
+    {"d":"2024-08-13","c":"xAI","m":"Grok","k":"model","t":"Grok 2 发布","major":False,"src":"xAI"},
+    {"d":"2025-02-17","c":"xAI","m":"Grok","k":"model","t":"Grok 3 发布","major":True,"src":"xAI"},
+    # ── DeepSeek（中国）──
+    {"d":"2024-01-05","c":"DeepSeek","m":"DeepSeek","k":"model","t":"DeepSeek LLM 首个大模型发布","major":False,"src":"深度求索"},
+    {"d":"2024-05-07","c":"DeepSeek","m":"DeepSeek","k":"model","t":"DeepSeek-V2 开源 MoE 模型发布","major":False,"src":"深度求索"},
+    {"d":"2024-12-26","c":"DeepSeek","m":"DeepSeek","k":"model","t":"DeepSeek-V3 开源发布（6710亿参数）","major":True,"src":"深度求索"},
+    {"d":"2025-01-20","c":"DeepSeek","m":"DeepSeek","k":"model","t":"DeepSeek-R1 推理模型开源发布","major":True,"src":"深度求索"},
+    # ── 百度（中国）──
+    {"d":"2023-03-16","c":"百度","m":"文心 ERNIE","k":"product","t":"文心一言发布","major":False,"src":"百度"},
+    {"d":"2023-10-17","c":"百度","m":"文心 ERNIE","k":"model","t":"文心大模型 4.0 发布","major":False,"src":"百度"},
+    {"d":"2024-06-28","c":"百度","m":"文心 ERNIE","k":"model","t":"文心大模型 4.0 Turbo 发布","major":False,"src":"百度"},
+    {"d":"2025-03-16","c":"百度","m":"文心 ERNIE","k":"model","t":"文心大模型 4.5 发布（原生多模态/深度思考）","major":False,"src":"百度"},
+    # ── 阿里（中国）──
+    {"d":"2023-04-11","c":"阿里","m":"通义千问","k":"model","t":"通义千问发布","major":False,"src":"阿里云"},
+    {"d":"2024-06-07","c":"阿里","m":"通义千问","k":"model","t":"Qwen2 大模型开源发布","major":False,"src":"阿里云"},
+    {"d":"2024-09-19","c":"阿里","m":"通义千问","k":"model","t":"Qwen2.5 发布","major":False,"src":"阿里云"},
+    {"d":"2025-01-29","c":"阿里","m":"通义千问","k":"model","t":"Qwen2.5-Max 旗舰模型发布","major":False,"src":"阿里云"},
+    {"d":"2025-04-29","c":"阿里","m":"通义千问","k":"model","t":"Qwen3 开源（混合推理模型）","major":True,"src":"阿里云"},
+    # ── 智谱（中国）──
+    {"d":"2023-03-15","c":"智谱","m":"智谱 GLM","k":"model","t":"ChatGLM 对话基座模型发布","major":False,"src":"智谱"},
+    {"d":"2024-01-16","c":"智谱","m":"智谱 GLM","k":"model","t":"GLM-4 基座大模型发布","major":False,"src":"智谱"},
+    {"d":"2025-07-28","c":"智谱","m":"智谱 GLM","k":"model","t":"GLM-4.5 开源旗舰模型发布","major":False,"src":"智谱"},
+    # ── 月之暗面（中国）──
+    {"d":"2023-10-09","c":"月之暗面","m":"Kimi","k":"product","t":"Kimi 智能助手发布（20万汉字上下文）","major":False,"src":"月之暗面"},
+    {"d":"2025-01-20","c":"月之暗面","m":"Kimi","k":"model","t":"Kimi K1.5 多模态思考模型发布","major":False,"src":"月之暗面"},
+    {"d":"2025-07-11","c":"月之暗面","m":"Kimi","k":"model","t":"Kimi K2 开源发布（万亿参数 MoE）","major":True,"src":"月之暗面"},
+    # ── 字节（中国）──
+    {"d":"2023-08-17","c":"字节","m":"豆包","k":"product","t":"豆包（云雀）AI 对话产品公测","major":False,"src":"字节"},
+    {"d":"2024-05-15","c":"字节","m":"豆包","k":"model","t":"豆包大模型正式发布","major":False,"src":"字节"},
+    {"d":"2025-06-11","c":"字节","m":"豆包","k":"model","t":"豆包大模型 1.6 / Seedance 1.0 发布","major":False,"src":"字节"},
+    {"d":"2026-02-14","c":"字节","m":"豆包","k":"model","t":"豆包大模型 2.0 发布","major":False,"src":"字节"},
+    # ── 腾讯（中国）──
+    {"d":"2023-09-07","c":"腾讯","m":"混元","k":"model","t":"腾讯混元大模型正式亮相","major":False,"src":"腾讯"},
+    {"d":"2024-05-30","c":"腾讯","m":"混元","k":"product","t":"腾讯元宝 App 上线","major":False,"src":"腾讯"},
+    # ── Microsoft（美国）──
+    {"d":"2023-03-16","c":"Microsoft","m":"Copilot","k":"product","t":"Microsoft 365 Copilot 发布","major":False,"src":"Microsoft"},
+    {"d":"2024-05-21","c":"Microsoft","m":"Copilot","k":"product","t":"Copilot+ PC / Copilot Studio 发布","major":False,"src":"Microsoft"},
+]
 GANTT_TOP_N = 12  # 时间线甘特图展示事件数最多的 N 家公司
 # 甘特时间线中「产品更新」的「仅重要」过滤（激进版，仅作用于时间线；每日日报仍保留全部）。
 # 判定为「次要/不展示」：① 指南/教程/观点类(_GUIDE_KW)
@@ -986,6 +1073,11 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
     for(; t<=dom1+1; t+=step*DAY) out.push(t);
     return out;
   }
+  function yearTicks(){ // 每年 1 月 1 日，用于「年视图」
+    const out=[]; const y0=new Date(full0).getUTCFullYear(); const y1=new Date(full1).getUTCFullYear();
+    for(let y=y0;y<=y1;y++) out.push(new Date(y+"-01-01T00:00:00Z").getTime());
+    return out;
+  }
   function clamp(){
     let s=dom1-dom0; s=Math.max(MIN_SPAN,Math.min(full1-full0,s));
     if(dom0<full0){dom0=full0;dom1=full0+s;}
@@ -1027,13 +1119,24 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
     const plotBottom=y;
     // 左侧标签栏与绘图区分隔线
     h+=`<line x1="${L.toFixed(1)}" y1="${T}" x2="${L.toFixed(1)}" y2="${plotBottom.toFixed(1)}" stroke="#e4e7ef" stroke-width="1"/>`;
-    // 2) 月网格
-    ticks().forEach(ms=>{ const x=xAt(ms);
-      if(x<L-0.5||x>W-R+0.5) return;
-      h+=`<line x1="${x.toFixed(1)}" y1="${T}" x2="${x.toFixed(1)}" y2="${plotBottom.toFixed(1)}" stroke="#eef0f5"/>`;
-      const d=new Date(ms); const lab = tickStep()>=30 ? `${d.getUTCMonth()+1}月` : `${d.getUTCMonth()+1}/${d.getUTCDate()}`;
-      h+=`<text x="${x.toFixed(1)}" y="${(H-22).toFixed(1)}" text-anchor="middle" font-size="10.5" fill="#9aa1b1">${lab}</text>`;
-    });
+    // 2) 时间轴刻度：跨度 > 2 年用「年视图」（年份标签 + 淡月线），否则「月视图」
+    const spanDays=(dom1-dom0)/DAY;
+    if(spanDays>730){
+      yearTicks().forEach(yt=>{ const x=xAt(yt); if(x<L-0.5||x>W-R+0.5) return;
+        h+=`<line x1="${x.toFixed(1)}" y1="${T}" x2="${x.toFixed(1)}" y2="${plotBottom.toFixed(1)}" stroke="#d7dbe6"/>`;
+        h+=`<text x="${(x+3).toFixed(1)}" y="${(T+13).toFixed(1)}" text-anchor="start" font-size="11" font-weight="800" fill="#6b7280">${new Date(yt).getUTCFullYear()}</text>`;
+      });
+      ticks().forEach(ms=>{ const x=xAt(ms); if(x<L-0.5||x>W-R+0.5) return;
+        h+=`<line x1="${x.toFixed(1)}" y1="${T}" x2="${x.toFixed(1)}" y2="${plotBottom.toFixed(1)}" stroke="#f0f2f7"/>`;
+      });
+    } else {
+      ticks().forEach(ms=>{ const x=xAt(ms);
+        if(x<L-0.5||x>W-R+0.5) return;
+        h+=`<line x1="${x.toFixed(1)}" y1="${T}" x2="${x.toFixed(1)}" y2="${plotBottom.toFixed(1)}" stroke="#eef0f5"/>`;
+        const d=new Date(ms); const lab = tickStep()>=30 ? `${d.getUTCMonth()+1}月` : `${d.getUTCMonth()+1}/${d.getUTCDate()}`;
+        h+=`<text x="${x.toFixed(1)}" y="${(H-22).toFixed(1)}" text-anchor="middle" font-size="10.5" fill="#9aa1b1">${lab}</text>`;
+      });
+    }
     // 3) 事件标记（重大模型更新=红；其余按类型着色）
     rows.forEach(r=>{ if(r.type!=="m") return;
       const m=r.m, y0=rowY[m.company+"|"+m.name], cy=y0+rowH/2; let lastX=-999;
@@ -1089,7 +1192,7 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
         tip.style.left=tx+"px"; tip.style.top=ty+"px";
       });
       g.addEventListener("mouseleave",()=>{tip.style.display="none";});
-      g.addEventListener("click",()=>{ if(moved) return; window.open(j.f,"_blank","noopener"); });
+      g.addEventListener("click",()=>{ if(moved) return; if(j.f) window.open(j.f,"_blank","noopener"); });
     });
   }
 
@@ -1159,6 +1262,10 @@ def render_day(day):
         .replace("__TOTAL__", str(meta["total"]))
         .replace("__GENERATEDAT__", meta["generatedAt"]))
 
+# 甘特图安全过滤：命中以下明显「非发布」关键词的标题直接剔除（不进时间线）
+_GANT_SKIP_KW = ["融资", "收购", "并购", "财报", "上市", "诉讼", "监管", "处罚",
+                 "招聘", "离职", "人事变动", "获奖", "榜单", "排名", "论坛", "大会", "协会"]
+
 def compute_gantt(arch, top_n=GANTT_TOP_N):
     """甘特式时间线：取「模型发布/更新」与「产品发布/更新」版块条目，按 (公司 → 模型) 逐模型分行；
     模型事件命中「重大版本/发布」高亮（major=True，前端红色块）。
@@ -1181,6 +1288,9 @@ def compute_gantt(arch, top_n=GANTT_TOP_N):
                 continue
             for it in sec.get("items", []):
                 title = (it.get("title") or "")
+                # 安全过滤：仅保留「模型发布 / 产品更新」，跳过融资/合作/论文/榜单等非发布类事件
+                if any(kw in title for kw in _GANT_SKIP_KW):
+                    continue
                 text = (title + " " + (it.get("summary") or "")).lower()
                 comp = None
                 for name, _, kws, _ in COMPANIES:
@@ -1210,6 +1320,23 @@ def compute_gantt(arch, top_n=GANTT_TOP_N):
                     "minor": (is_minor_product(title) if kind == "product" else is_minor_model(title)),
                     "major": (kind == "model") and is_major_model(title),
                 })
+    # ── 合并历史里程碑（2020–2026 经核实的模型发布 / 产品更新）──
+    for mst in MILESTONES:
+        comp = mst["c"]
+        if comp not in COMP_MAP:
+            continue
+        ccolor, cregion = COMP_MAP[comp]
+        key = (comp, mst["m"])
+        g = groups.get(key)
+        if not g:
+            g = {"company": comp, "name": mst["m"], "color": ccolor,
+                 "region": cregion, "events": []}
+            groups[key] = g
+        g["events"].append({
+            "date": mst["d"], "kind": mst["k"], "title": mst["t"],
+            "source": mst.get("src", "历史资料"), "file": "",
+            "minor": False, "major": bool(mst.get("major")),
+        })
     # 把与公司同名的兜底模型改名为“其他”，避免左侧公司名重复显示
     for g in groups.values():
         if g["name"] == g["company"]:
@@ -1227,7 +1354,10 @@ def compute_gantt(arch, top_n=GANTT_TOP_N):
             "tag": ("#4f46e5" if region == "us" else "#e11d48"),
             "models": models,
         })
-    return {"range": [dates[0], dates[-1]], "regions": regions}
+    # 时间线范围：覆盖 daily-feed 与历史里程碑的最早/最晚日期（现含 2020 起）
+    mdates = [m["d"] for m in MILESTONES if m["c"] in COMP_MAP]
+    alld = sorted(set(dates + mdates))
+    return {"range": [alld[0], alld[-1]], "regions": regions}
 
 def render_index(days):
     idx_days = []
