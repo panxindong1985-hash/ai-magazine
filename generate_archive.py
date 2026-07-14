@@ -33,7 +33,7 @@ SECTIONS = [
     ("技巧与观点",   "#0284c7"),
 ]
 
-# 主要 AI 公司 → (别名关键词, 阵营)。阵营 region: "us"=美国 / "cn"=中国 / "eu"=欧洲（含单一欧盟成员国公司，统一用🇪🇺）；甘特图按阵营分块呈现，欧洲置底。
+# 主要 AI 公司 → (别名关键词, 阵营)。阵营 region: "us"=美国 / "cn"=中国 / "eu"=欧洲公司（当前仅法国 Mistral，标题按其所属国家显示🇫🇷法国）；甘特图按阵营分块呈现，欧洲置底。
 COMPANIES = [
     ("OpenAI",  "#10a37f", ["openai", "chatgpt", "sora"], "us"),
     ("Anthropic","#d97706", ["anthropic", "claude"], "us"),
@@ -1093,7 +1093,7 @@ INDEX_TPL = r"""<!DOCTYPE html>
   <section class="gantt wrap">
     <div class="trend-head">
       <h2>🗓️ 主要 AI 公司 模型 / 产品 更新时间线</h2>
-      <p class="trend-sub">上方为🇺🇸美国公司、中间为🇨🇳中国公司、底部为🇪🇺欧洲公司；<b>每个模型单独一行</b>（如某公司有 2 个模型则分行），横向为日期。🔵蓝=模型发布，🟢绿=产品更新，🔴红=重大模型更新（如 Seedance 2.0 文生视频、GPT-5、Gemini 2.0 等）。产品默认仅显示重大发布（点版本号、常规功能增量、指南类已自动隐藏，可关闭「⚡仅重要」看全部）。每行左侧数字为该模型事件数；<b>模型行按 LMArena 评分降序排列</b>，每行最右为「评分条 + 该系列最强公开版本的 Arena Elo 分」，无公开可比分数者显示「—」（如视频/图像/未公开独立评分的产品）；滚轮缩放、拖动平移、悬停看详情 · 事件日期为经网络核实的官方发布日（2020 起）</p>
+      <p class="trend-sub">上方为🇺🇸美国公司、中间为🇨🇳中国公司、底部为🇫🇷法国公司；<b>每个模型单独一行</b>（如某公司有 2 个模型则分行），横向为日期。🔵蓝=模型发布，🟢绿=产品更新，🔴红=重大模型更新（如 Seedance 2.0 文生视频、GPT-5、Gemini 2.0 等）。产品默认仅显示重大发布（点版本号、常规功能增量、指南类已自动隐藏，可关闭「⚡仅重要」看全部）。每行左侧数字为该模型事件数；<b>模型行按 LMArena 评分降序排列</b>，每行最右为「评分条 + 该系列最强公开版本的 Arena Elo 分」，无公开可比分数者显示「—」（如视频/图像/未公开独立评分的产品）；滚轮缩放、拖动平移、悬停看详情 · 事件日期为经网络核实的官方发布日（2020 起）</p>
     </div>
     <div class="gantt-ctrl">
       <button class="gbtn active" data-kind="model">🔵 模型发布</button>
@@ -1213,15 +1213,8 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
   const svg=document.getElementById("ganttChart");
   const W=960,L=200,R=78,T=18,B=44,rowH=30;   // R 加宽至 78：右侧预留「评分栏」
   const REGION={us:{label:"🇺🇸 美国公司",tint:"#f3f5ff",tag:"#4f46e5"},
-                eu:{label:"🇪🇺 欧洲公司",tint:"#f0fff4",tag:"#059669"},
+                eu:{label:"🇫🇷 法国公司",tint:"#f0fff4",tag:"#059669"},
                 cn:{label:"🇨🇳 中国公司",tint:"#fff5f6",tag:"#e11d48"}};
-  // 公司前缀国旗：欧盟公司用🇪🇺（不标国家）；单一国家公司用「国旗+国家名」
-  function regionPrefix(region){
-    if(region==="eu") return "🇪🇺 ";
-    if(region==="us") return "🇺🇸 美国 ";
-    if(region==="cn") return "🇨🇳 中国 ";
-    return "";
-  }
   const headerH=22;
   const compH=20;
   const rows=[];
@@ -1337,8 +1330,7 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
         h+=`<rect x="0" y="${y.toFixed(1)}" width="${W}" height="${compH}" fill="#f6f7fb"/>`;
         h+=`<line x1="0" y1="${(y+compH).toFixed(1)}" x2="${W}" y2="${(y+compH).toFixed(1)}" stroke="#eceef4"/>`;
         h+=`<circle cx="13" cy="${(y+compH/2).toFixed(1)}" r="4" fill="${r.color}"/>`;
-        const prefix=regionPrefix(r.region);
-        h+=`<text x="23" y="${(y+compH/2+4).toFixed(1)}" font-size="11.5" font-weight="800" fill="#1f2430">${prefix}${escapeHtml(comp)}</text>`;
+        h+=`<text x="23" y="${(y+compH/2+4).toFixed(1)}" font-size="11.5" font-weight="800" fill="#1f2430">${escapeHtml(comp)}</text>`;
         const tot=r.all.reduce((a,m)=>a+visibleEvents(m).length,0);
         const countText=r.models.length?`${r.models.length} 个模型 · ${tot} 次`:`${tot} 次`;
         h+=`<text x="${L-12}" y="${(y+compH/2+4).toFixed(1)}" text-anchor="end" font-size="10.5" fill="#9aa1b1">${countText}</text>`;
@@ -1567,7 +1559,7 @@ def compute_gantt(arch=None, top_n=GANTT_TOP_N):
     regions = []
     _REGION_META = {
         "us": ("🇺🇸 美国公司", "#f3f5ff", "#4f46e5"),
-        "eu": ("🇪🇺 欧洲公司", "#f0fff4", "#059669"),
+        "eu": ("🇫🇷 法国公司", "#f0fff4", "#059669"),
         "cn": ("🇨🇳 中国公司", "#fff5f6", "#e11d48"),
     }
     for region in ("us", "cn", "eu"):
