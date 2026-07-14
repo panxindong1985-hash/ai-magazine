@@ -1050,7 +1050,12 @@ INDEX_TPL = r"""<!DOCTYPE html>
   .gbtn[data-kind=model].active{background:#4f46e5;border-color:#4f46e5}
   .gbtn[data-mode].active{background:#4f46e5;border-color:#4f46e5}
   .glegend{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:#4b5161;
-    background:#f6f7fb;border:1px solid var(--line);border-radius:999px;padding:7px 14px;user-select:none}
+    background:#f6f7fb;border:1px solid var(--line);border-radius:999px;padding:7px 14px;user-select:none;
+    cursor:pointer;transition:.15s}
+  .glegend:hover{border-color:var(--lc,#c9cdfb)}
+  .glegend.active{border-color:var(--lc);color:#1f2430;
+    box-shadow:0 0 0 2.5px color-mix(in srgb, var(--lc) 32%, transparent)}
+  .glegend.dim{opacity:.4}
   .glegend .lg-dot{width:11px;height:11px;border-radius:3px;display:inline-block}
   .gsep{width:1px;background:var(--line);margin:3px 4px}
   #ganttChart{width:100%;height:auto;display:block;cursor:grab}
@@ -1108,9 +1113,12 @@ INDEX_TPL = r"""<!DOCTYPE html>
       <p class="trend-sub">🇺🇸美国 / 🇨🇳中国 / 🇫🇷法国 三阵营分块，每个模型单独成行，横向为日期。🔵蓝=模型大版本发布（如 3/4/5），🟢绿=子版本更新（如 3.2/4.1），🔴红=里程碑模型（评分极高的标杆，如 Seedance 2.0、GPT-5、Gemini 3）；<b>纯模型视角</b>——仅收录模型发布 / 版本更新，不含产品 App、技术报告、登陆平台等非发布类事件。模型行按 LMArena 评分降序排列，行尾「评分条 + Arena Elo」为该系列最强公开版本分数（无公开分数者显示「—」）；行首数字为该模型事件数。历史基线（2020–2024）经网络核实，2025 起自动同步 AI HOT 每日日报「模型发布/更新」版块，新模型发布即自动入图。</p>
     </div>
     <div class="gantt-ctrl">
-      <span class="glegend"><i class="lg-dot" style="background:#4f46e5"></i>模型大版本（3/4/5）</span>
-      <span class="glegend"><i class="lg-dot" style="background:#059669"></i>子版本更新（3.2/4.1）</span>
-      <span class="glegend"><i class="lg-dot" style="background:#ef4444"></i>里程碑模型</span>
+      <span class="glegend" data-legend="blue" style="--lc:#4f46e5" title="点击仅显示模型大版本发布">
+        <i class="lg-dot" style="background:#4f46e5"></i>模型大版本（3/4/5）</span>
+      <span class="glegend" data-legend="green" style="--lc:#059669" title="点击仅显示子版本更新">
+        <i class="lg-dot" style="background:#059669"></i>子版本更新（3.2/4.1）</span>
+      <span class="glegend" data-legend="red" style="--lc:#ef4444" title="点击仅显示里程碑模型">
+        <i class="lg-dot" style="background:#ef4444"></i>里程碑模型</span>
       <span class="gsep"></span>
       <span style="align-self:center;font-size:12.5px;color:var(--muted)">标记：</span>
       <button class="gbtn active" data-mode="block">▮ 方块</button>
@@ -1123,7 +1131,7 @@ INDEX_TPL = r"""<!DOCTYPE html>
       <svg id="ganttChart" preserveAspectRatio="xMidYMid meet" role="img" aria-label="主要 AI 公司模型与产品更新时间线"></svg>
       <div id="ganttTip"></div>
     </div>
-    <p class="trend-sub" style="margin-top:8px">提示：在图上滚动鼠标滚轮可放大/缩小某一时间段，按住拖动可平移时间轴。</p>
+    <p class="trend-sub" style="margin-top:8px">提示：点击上方彩色图例（大版本 / 子版本 / 里程碑）可单独查看该类事件的甘特图，再点一次或「重置视图」恢复全部；在图上滚动鼠标滚轮可放大/缩小某一时间段，按住拖动可平移时间轴。</p>
   </section>
   <main class="wrap">
     <div class="idx-head">
@@ -1306,6 +1314,11 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
   const MILESTONE_FAMS=new Set(["GPT","Gemini","Claude","Llama","DeepSeek 系列","Grok","Seedance"]);
   // 版本层级：从标题解析首个版本号，x.y（y≠0）视为子版本→绿，整数或 x.0 视为大版本→蓝/红
   function versionTier(title){ const m=String(title||"").match(/(\d+)(?:\.(\d+))?/); if(!m) return "major"; const minor=m[2]?parseInt(m[2],10):0; return minor!==0?"minor":"major"; }
+  // 事件颜色分类（与图例一致）：green=子版本 / red=里程碑 / blue=大版本
+  function eventColorKey(e,m){ const tier=versionTier(e.title);
+    if(tier==="minor") return "green"; return MILESTONE_FAMS.has(m.name) ? "red" : "blue"; }
+  const LEGEND_COLOR={blue:"#4f46e5",green:"#059669",red:"#ef4444"};
+  let legendFilter=null;    // null=全部；"blue"/"green"/"red"=仅显示该图例对应事件与所在模型行
   const kindText={model:"模型发布",product:"产品更新"};
   const show={model:true,product:true};
   let markerMode="block";   // block（方块）| dot（圆点）| bar（竖条）
@@ -1316,7 +1329,8 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
   function bestRating(arr){ let r=-1; arr.forEach(m=>{ if(m.rating!=null && m.rating>r) r=m.rating; }); return r; }
 
   function visibleEvents(c){
-    return c.events.filter(e=> show[e.kind] && !(majorOnly && e.minor));
+    return c.events.filter(e=> show[e.kind] && !(majorOnly && e.minor)
+      && (!legendFilter || eventColorKey(e,c)===legendFilter));
   }
 
   function monthTicks(){
@@ -1333,14 +1347,26 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
   function render(){
     clampView();
     let h=""; const rowY={}; let band=0; let y=T;
+    // 图例筛选：预扫描出「在当前筛选下仍有事件」的模型 / 公司 / 阵营，用于隐藏空行
+    const filtering=!!legendFilter;
+    const modelHasVis={}, compHasVis={}, regHasVis={};
+    if(filtering){
+      rows.forEach(r=>{ if(r.type!=="m") return;
+        const has=visibleEvents(r.m).length>0;
+        modelHasVis[r.m.company+"|"+r.m.name]=has;
+        if(has){ compHasVis[r.m.company]=true; regHasVis[r.m.region]=true; }
+      });
+    }
     // 1) 区域带 + 公司分组头 + 模型行（每公司下展开各自模型）
     rows.forEach(r=>{
       if(r.type==="h"){
+        if(filtering && !regHasVis[r.region]) return;
         const reg=REGION[r.region];
         h+=`<rect x="0" y="${y.toFixed(1)}" width="${W}" height="${headerH}" fill="${reg.tint}"/>`;
         h+=`<text x="12" y="${(y+headerH/2+4).toFixed(1)}" font-size="11.5" font-weight="800" fill="${reg.tag}">${reg.label}</text>`;
         y+=headerH;
       } else if(r.type==="c"){
+        if(filtering && !compHasVis[r.company]) return;
         const comp=r.company;
         h+=`<rect x="0" y="${y.toFixed(1)}" width="${W}" height="${compH}" fill="#f6f7fb"/>`;
         h+=`<line x1="0" y1="${(y+compH).toFixed(1)}" x2="${W}" y2="${(y+compH).toFixed(1)}" stroke="#eceef4"/>`;
@@ -1352,6 +1378,7 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
         y+=compH;
       } else {
         const m=r.m, y0=y;
+        if(filtering && !modelHasVis[m.company+"|"+m.name]) return;
         h+=`<rect x="0" y="${y0.toFixed(1)}" width="${W}" height="${rowH}" fill="${band%2?'#fafbff':'#fff'}"/>`;
         band++;
         const vis=visibleEvents(m);
@@ -1444,6 +1471,8 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
         });
       });
     });
+    // 筛选时行数变化，按实际内容高度更新画布，避免底部留白
+    svg.setAttribute("viewBox",`0 0 ${W} ${(plotBottom+B).toFixed(1)}`);
     svg.innerHTML=h;
     if(rangeLabel) rangeLabel.textContent=`可见 ${bandLabelAtUnits(viewStart)} – ${bandLabelAtUnits(viewStart+viewUnits)} · 约 ${(viewUnits/totalUnits*numYears).toFixed(1)} 年（按内容量分配列宽）`;
     svg.querySelectorAll(".gev").forEach(g=>{
@@ -1511,9 +1540,24 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
       b.classList.add("active"); render();
     });
   });
-  // 重置视图
+  // 图例点击筛选：点亮某图例 → 甘特图仅显示该层级事件及其所在模型行；再点取消
+  const legendEls=document.querySelectorAll(".glegend[data-legend]");
+  function syncLegend(){
+    legendEls.forEach(el=>{ const k=el.getAttribute("data-legend");
+      el.classList.toggle("active", legendFilter===k);
+      el.classList.toggle("dim", legendFilter!==null && legendFilter!==k);
+    });
+  }
+  legendEls.forEach(el=>{
+    el.addEventListener("click",()=>{
+      const k=el.getAttribute("data-legend");
+      legendFilter = (legendFilter===k) ? null : k;
+      syncLegend(); render();
+    });
+  });
+  // 重置视图（同时清除图例筛选）
   const rb=document.getElementById("ganttReset");
-  if(rb) rb.addEventListener("click",()=>{ viewStart=0; viewUnits=totalUnits; render(); });
+  if(rb) rb.addEventListener("click",()=>{ viewStart=0; viewUnits=totalUnits; legendFilter=null; syncLegend(); render(); });
   render();
 })();
 </script>
