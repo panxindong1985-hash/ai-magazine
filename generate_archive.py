@@ -1083,6 +1083,11 @@ INDEX_TPL = r"""<!DOCTYPE html>
   .gsep{width:1px;background:var(--line);margin:3px 4px}
   #ganttChart{width:100%;height:auto;display:block;cursor:grab}
   #ganttChart:active{cursor:grabbing}
+  #ganttChart .gev{cursor:pointer}
+  #ganttChart .gev:hover{filter:drop-shadow(0 0 5px rgba(79,70,229,.6))}
+  #ganttChart .grow{transition:fill .12s}
+  #ganttChart .grow:hover{fill:#eef3ff}
+  #ganttChart .gtoday{font-size:9px;font-weight:800;fill:#f97316}
   #ganttTip{position:absolute;display:none;pointer-events:none;background:#1f2430;color:#fff;
     font-size:12px;line-height:1.55;padding:8px 10px;border-radius:10px;box-shadow:0 6px 18px rgba(16,24,40,.25);
     z-index:5;max-width:300px}
@@ -1426,7 +1431,7 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
       } else {
         const m=r.m, y0=y;
         if(filtering && !modelHasVis[m.company+"|"+m.name]) return;
-        h+=`<rect x="0" y="${y0.toFixed(1)}" width="${W}" height="${rowH}" fill="${band%2?'#fafbff':'#fff'}"/>`;
+        h+=`<rect class="grow" x="0" y="${y0.toFixed(1)}" width="${W}" height="${rowH}" fill="${band%2?'#fafbff':'#fff'}"/>`;
         band++;
         const vis=visibleEvents(m);
         h+=`<circle cx="29" cy="${(y0+rowH/2).toFixed(1)}" r="4" fill="${m.color}"/>`;
@@ -1452,6 +1457,14 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
     h+=overlay;
     // 左侧标签栏与绘图区分隔线
     h+=`<line x1="${L.toFixed(1)}" y1="${T}" x2="${L.toFixed(1)}" y2="${plotBottom.toFixed(1)}" stroke="#e4e7ef" stroke-width="1"/>`;
+    // 年份分组背景交替（极淡），帮助区分不同时间段
+    BANDS.forEach((b,i)=>{
+      if(i%2!==0) return;
+      const x0=xOfUnits(cumBeforeB[b.label]);
+      const x1=xOfUnits(cumBeforeB[b.label]+bandUnits[b.label]);
+      const bx=Math.max(x0,L), bw=Math.min(x1,W-R)-Math.max(x0,L);
+      if(bw>0.5) h+=`<rect x="${bx.toFixed(1)}" y="${T}" width="${bw.toFixed(1)}" height="${(plotBottom-T).toFixed(1)}" fill="#f6f8fc" opacity="0.66"/>`;
+    });
     // 2) 时间轴：内容加权列宽（稀疏年细、密集年宽）+ 顶部年份标签
     h+=`<rect x="${L}" y="0" width="${W-L-R}" height="${T}" fill="#ffffff"/>`;
     h+=`<text x="${(W-4)}" y="${(T-4).toFixed(1)}" text-anchor="end" font-size="9.5" font-weight="800" fill="#9aa1b1">LMArena Elo ↓</text>`;
@@ -1474,12 +1487,35 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
         h+=`<line x1="${x.toFixed(1)}" y1="${T}" x2="${x.toFixed(1)}" y2="${plotBottom.toFixed(1)}" stroke="#f3f5f9"/>`;
       });
     }
+    // 季度淡分隔线（仅深度放大时显示，辅助时间定位）
+    if(viewUnits<=totalUnits*0.32){
+      for(let y=minYear;y<=maxYear;y++){ for(let q=1;q<=4;q++){
+        const ms=Date.UTC(y,(q-1)*3,1); if(ms<full0||ms>full1) continue;
+        const x=xAt(ms); if(x<L-0.5||x>W-R+0.5) continue;
+        h+=`<line x1="${x.toFixed(1)}" y1="${T}" x2="${x.toFixed(1)}" y2="${plotBottom.toFixed(1)}" stroke="#e9edf4"/>`;
+      }}
+    }
+    // “今天”参考线（橙色虚线 + 底部标签），与右边界（统计截止日）同源，作为时间锚点
+    {
+      const tx=xAtDate(G.range[1]);
+      if(tx>=L-0.5 && tx<=W-R+0.5){
+        h+=`<line x1="${tx.toFixed(1)}" y1="${T}" x2="${tx.toFixed(1)}" y2="${plotBottom.toFixed(1)}" stroke="#f97316" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.85"/>`;
+        h+=`<text class="gtoday" x="${tx.toFixed(1)}" y="${(plotBottom+14).toFixed(1)}" text-anchor="middle">今天</text>`;
+      }
+    }
     // 3) 事件标记：每个点按真实发布日期（年/月/日）在时间轴上定位，突出发布时间先后
     rows.forEach(r=>{ if(r.type!=="m") return;
       const m=r.m, y0=rowY[m.company+"|"+m.name], cy=y0+rowH/2;
       const mH = markerMode==="dot" ? 0 : (markerMode==="bar" ? Math.round(rowH*0.6) : 15);
       const vis=visibleEvents(m).slice().sort((a,b)=> a.date<b.date?-1:(a.date>b.date?1:0));
       if(!vis.length) return;
+      // 模型活跃跨度条：贯穿「最早→最晚」事件的淡色圆角带，强化甘特图的连续区间语义
+      if(vis.length>1){
+        const xs=xAtDate(vis[0].date), xe=xAtDate(vis[vis.length-1].date);
+        const sx=Math.max(L,Math.min(xs,xe)), ex=Math.min(W-R,Math.max(xs,xe));
+        const bw=ex-sx;
+        if(bw>0.5) h+=`<rect x="${sx.toFixed(1)}" y="${(y0+rowH/2-5).toFixed(1)}" width="${bw.toFixed(1)}" height="10" rx="5" fill="${m.color}" opacity="0.12"/>`;
+      }
       vis.forEach(e=>{
         let x = xAt(new Date(e.date+"T00:00:00Z").getTime());
         if(x<L-8 || x>W-R+8) return;               // 视野外跳过
