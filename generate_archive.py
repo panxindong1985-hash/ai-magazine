@@ -80,6 +80,20 @@ COMPANIES = [
 ]
 # 颜色统一引用 BrandConfig（官方品牌色唯一来源）；COMPANIES 内联色仅作回退
 COMPANIES = [(n, BRAND_CONFIG.get(n, c), kws, r) for (n, c, kws, r) in COMPANIES]
+# ── 模型命名规范（★★★★★ 全局约定，新增/修改模型务必遵循）──────────────────────
+# 1) 公司 ≠ 模型：禁止用「公司名」充当「模型名」。
+#    错误：Apple→Apple、Google→Google、Meta→Meta（时间轴会出现「公司名重复」的歧义行）。
+# 2) 模型必须使用「官方公开模型家族品牌名（Brand Name）」，而非技术描述或中文全称。
+#    正确：GPT / Claude / Gemini / Llama / Grok / Qwen / GLM / ERNIE / Hunyuan / Kimi /
+#          Foundation Models / Seed / Veo / Imagen …
+#    错误：Apple 基础模型（→Foundation Models）、Image Generation Model（→GPT Image）、
+#          Google Video Model（→Veo）、文心大模型（→ERNIE）、通义千问大模型（→Qwen）。
+# 3) 中文说明只放在 Tooltip / 详情页，数据库模型名统一用英文官方品牌，保证国际化和专业度。
+# 4) 平台/产品（如 Apple Intelligence、Copilot App、元宝）不是基础模型，不计入模型时间轴；
+#    如需展示，归入「产品」维度，不建模型行。
+# 5) 一家公司的多个系列用官方名称分行（如 Apple：Foundation Models / On-device Foundation
+#    Model / Private Cloud Compute Model），主系列放在最前。
+# ─────────────────────────────────────────────────────────────────────────────
 # 主要模型清单：时间线「按模型分行」用。匹配顺序自上而下；未命中则退化为按公司聚合。
 # (模型名, 所属公司, [关键词小写])
 MODELS = [
@@ -117,7 +131,7 @@ MODELS = [
     ("Mistral 系列", "Mistral", ["mistral"]),
     ("Nova",       "Amazon",   ["nova"]),
     ("Titan",      "Amazon",   ["titan"]),
-    ("Apple 基础模型","Apple",  ["apple intelligence", "foundation model", "apple 基础", "apple foundation"]),
+    ("Foundation Models","Apple",  ["apple intelligence", "foundation model", "foundation models", "apple 基础模型", "apple 基础", "apple foundation", "on-device foundation"]),
     ("Baichuan",   "百川",     ["baichuan", "百川"]),
     ("MiniMax 系列","稀宇科技",["abab", "minimax", "minmax", "m2.7", "m2.5"]),
     ("星火",       "讯飞星火",  ["星火", "spark", "讯飞"]),
@@ -172,7 +186,8 @@ FAMILY = {
     # Amazon
     "Nova": "Nova", "Titan": "Titan",
     # Apple
-    "Apple 基础模型": "Apple 基础模型",
+    "Foundation Models": "Foundation Models",
+    "Apple 基础模型": "Foundation Models",   # 旧名兼容归族
     # 百川
     "Baichuan": "Baichuan",
     # MiniMax
@@ -190,7 +205,7 @@ FAMILY = {
 # 数值取自 LMArena（原 LMSYS Chatbot Arena）公开 Arena Elo 排行榜 2026 年 7 月快照，
 # 代表该模型系列当前最强公开版本的盲测偏好分（100 Elo ≈ 头部对战胜率差约 64%）。
 # 仅收录「有公开可比文本 Arena 分数」的模型；视频/图像/语音类或未公开独立评分的
-# 产品类（如 Copilot、Seed、混元、即梦、Seedance、Coze、Nova、Titan、Apple、百川、MiniMax、星火）
+# 产品类（如 Copilot、Seed、混元、即梦、Seedance、Coze、Nova、Titan、Foundation Models、百川、MiniMax、星火）
 # 记为 None，时间线中显示「—」，并统一排在各公司评分模型之后。
 RATINGS = {
     # OpenAI
@@ -229,7 +244,7 @@ RATINGS = {
     # Amazon
     "Nova": None, "Titan": None,
     # Apple
-    "Apple 基础模型": None,
+    "Foundation Models": None,
     # 百川
     "Baichuan": None,
     # MiniMax
@@ -256,7 +271,7 @@ FAM_TYPE = {
     "文心 ERNIE": "文本", "通义千问 Qwen": "文本", "混元": "文本", "智谱 GLM": "文本",
     "Kimi": "文本", "Mistral 系列": "文本", "MiniMax 系列": "文本", "星火": "文本",
     "Baichuan": "文本", "Seed": "文本", "Coze 扣子": "文本", "Copilot": "文本",
-    "Nova": "文本", "Titan": "文本", "Apple 基础模型": "文本",
+    "Nova": "文本", "Titan": "文本", "Foundation Models": "文本",
     # 生成式媒体（无文本 Arena 分）
     "Sora": "视频", "Veo": "视频", "Seedance": "视频", "即梦": "图像", "DALL·E": "图像",
 }
@@ -317,7 +332,7 @@ CAPS = {
     "智谱 GLM": ["Chat", "Reasoning", "Coding", "Vision", "Agent", "LongContext"],
     "Kimi": ["Chat", "Reasoning", "Coding", "Vision", "Agent", "LongContext"],
     "Mistral 系列": ["Chat", "Reasoning", "Coding", "Agent"],
-    "Nova": ["Chat"], "Titan": ["Chat"], "Apple 基础模型": ["Chat"], "Baichuan": ["Chat"],
+    "Nova": ["Chat"], "Titan": ["Chat"], "Foundation Models": ["Chat", "Vision", "LongContext"], "Baichuan": ["Chat"],
     "MiniMax 系列": ["Chat", "Reasoning", "Coding", "Agent", "LongContext"], "星火": ["Chat"], "Nemotron 系列": ["Chat"],
     # 生成式媒体（无文本 Arena 分）
     "Sora": ["Video"], "Veo": ["Video"], "DALL·E": ["Image"], "Magenta": ["Audio"],
@@ -644,7 +659,7 @@ MILESTONES = [
     {"d":"2024-12-02","c":"Amazon","m":"Nova","k":"model","t":"Amazon Nova 系列发布（Micro/Lite/Pro/Premier）","major":True,"src":"Amazon"},
     {"d":"2025-04-30","c":"Amazon","m":"Nova","k":"model","t":"Amazon Nova Premier 发布","major":False,"src":"Amazon"},
     # ── Apple（美国）──
-    {"d":"2024-06-10","c":"Apple","m":"Apple 基础模型","k":"product","t":"Apple Intelligence 与端侧基础模型发布（WWDC24）","major":True,"src":"Apple"},
+    {"d":"2024-06-10","c":"Apple","m":"Foundation Models","k":"model","t":"Apple Foundation Models 发布（WWDC24：端侧基础模型 + Private Cloud Compute）","major":True,"src":"Apple"},
     # ── 百川（中国）──
     {"d":"2023-06-15","c":"百川","m":"Baichuan","k":"model","t":"Baichuan-7B 中英文大模型发布","major":False,"src":"百川智能"},
     {"d":"2024-01-29","c":"百川","m":"Baichuan","k":"model","t":"Baichuan 3 超千亿参数大模型发布","major":False,"src":"百川智能"},
@@ -2380,12 +2395,19 @@ def compute_gantt(arch=None, top_n=GANTT_TOP_N):
                 if not is_pure_model_release(title):
                     continue
                 text = (title + " " + (it.get("summary") or "")).lower()
-                # 公司识别
+                # 公司识别：标题优先（强信号），标题无命中再扩展至摘要，
+                # 避免「摘要里顺带提到别家（如 Apple WWDC）」把标题本是 Claude 的新闻误判给 Apple。
+                title_l = title.lower()
                 comp = None
                 for name, _, kws, _ in COMPANIES:
-                    if any(k in text for k in kws):
+                    if any(k in title_l for k in kws):
                         comp = name
                         break
+                if comp is None:
+                    for name, _, kws, _ in COMPANIES:
+                        if any(k in text for k in kws):
+                            comp = name
+                            break
                 if not comp:
                     continue
                 ccolor, cregion = COMP_MAP[comp]
