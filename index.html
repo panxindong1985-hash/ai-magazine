@@ -160,7 +160,7 @@
     <div id="archive"></div>
   </main>
   <footer>
-    <div>数据来源：<a href="https://aihot.virxact.com" target="_blank" rel="noopener noreferrer">AI HOT（aihot.virxact.com）</a> · 生成于 2026年07月16日 21:45</div>
+    <div>数据来源：<a href="https://aihot.virxact.com" target="_blank" rel="noopener noreferrer">AI HOT（aihot.virxact.com）</a> · 生成于 2026年07月16日 22:40</div>
     <div style="margin-top:6px">点击任意一期查看当日完整日报（含五版块与原文跳转）</div>
     <div style="margin-top:8px;opacity:.85">说明：本页已把每条新闻的标题、摘要、来源、日期<b>镜像保存到本地</b>；外部「原文」链接仅作溯源，即使链接失效或无法访问境外站点，已存档内容仍可正常查看。</div>
   </footer>
@@ -440,6 +440,11 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
     h+=overlay;
     // 左侧标签栏与绘图区分隔线
     h+=`<line x1="${L.toFixed(1)}" y1="${T}" x2="${L.toFixed(1)}" y2="${plotBottom.toFixed(1)}" stroke="#e4e7ef" stroke-width="1"/>`;
+    // 绘图区外框（右 / 上 / 下），与左边框同款，使左右对称、整体闭合
+    const fx=(W-R);
+    h+=`<line x1="${fx.toFixed(1)}" y1="${T}" x2="${fx.toFixed(1)}" y2="${plotBottom.toFixed(1)}" stroke="#e4e7ef" stroke-width="1"/>`;
+    h+=`<line x1="${L.toFixed(1)}" y1="${T}" x2="${fx.toFixed(1)}" y2="${T}" stroke="#e4e7ef" stroke-width="1"/>`;
+    h+=`<line x1="${L.toFixed(1)}" y1="${plotBottom.toFixed(1)}" x2="${fx.toFixed(1)}" y2="${plotBottom.toFixed(1)}" stroke="#e4e7ef" stroke-width="1"/>`;
     // 年份仅用细网格线区分（无列填充）；背景统一表达「阵营」
 
     // 2) 时间轴：内容加权列宽（稀疏年细、密集年宽）+ 顶部年份标签

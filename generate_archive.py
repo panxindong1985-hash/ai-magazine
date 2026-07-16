@@ -1550,6 +1550,11 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
     h+=overlay;
     // 左侧标签栏与绘图区分隔线
     h+=`<line x1="${L.toFixed(1)}" y1="${T}" x2="${L.toFixed(1)}" y2="${plotBottom.toFixed(1)}" stroke="#e4e7ef" stroke-width="1"/>`;
+    // 绘图区外框（右 / 上 / 下），与左边框同款，使左右对称、整体闭合
+    const fx=(W-R);
+    h+=`<line x1="${fx.toFixed(1)}" y1="${T}" x2="${fx.toFixed(1)}" y2="${plotBottom.toFixed(1)}" stroke="#e4e7ef" stroke-width="1"/>`;
+    h+=`<line x1="${L.toFixed(1)}" y1="${T}" x2="${fx.toFixed(1)}" y2="${T}" stroke="#e4e7ef" stroke-width="1"/>`;
+    h+=`<line x1="${L.toFixed(1)}" y1="${plotBottom.toFixed(1)}" x2="${fx.toFixed(1)}" y2="${plotBottom.toFixed(1)}" stroke="#e4e7ef" stroke-width="1"/>`;
     // 年份仅用细网格线区分（无列填充）；背景统一表达「阵营」
 
     // 2) 时间轴：内容加权列宽（稀疏年细、密集年宽）+ 顶部年份标签
