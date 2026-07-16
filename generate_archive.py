@@ -255,7 +255,7 @@ LM_MAP = [
     ("通义千问 Qwen",      ["qwen"],                 [],            []),
     ("智谱 GLM",          ["glm"],                  [],            []),
     ("混元",              ["hunyuan"],              [],            []),
-    ("豆包",              ["doubao"],               [],            []),
+    ("豆包",              ["doubao", "seed"],        [],            ["seedance", "seedream"]),
     ("Coze 扣子",          ["coze"],                 [],            []),
     ("Kimi",             ["kimi"],                 [],            []),
     ("Mistral 系列",       ["mistral"],              [],            []),
