@@ -1357,16 +1357,16 @@ INDEX_TPL = r"""<!DOCTYPE html>
   #ganttChart{width:100%;height:auto;display:block;cursor:grab;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(16,24,40,.05)}
   #ganttChart:active{cursor:grabbing}
   #ganttChart .gev{cursor:pointer}
-  #ganttChart .gev:hover{filter:drop-shadow(0 0 5px rgba(79,70,229,.6))}
-  #ganttChart .grow{transition:filter .12s}
-  #ganttChart .grow:hover{filter:brightness(0.965)}
+  #ganttChart .gev:hover{filter:drop-shadow(0 0 5px rgba(31,36,48,.32))}
+  #ganttChart .grow{transition:fill .12s}
+  #ganttChart .grow:hover{fill:color-mix(in srgb, var(--mc) 11%, #ffffff)}
   #ganttChart .gtag{cursor:default}
   #ganttChart .gtag rect{transition:fill .12s}
   #ganttChart .gtag text{transition:fill .12s}
-  #ganttChart .gtag:hover rect{fill:#4f46e5}
-  #ganttChart .gtag:hover text{fill:#fff}
-  #ganttChart .ccname{transition:fill .12s}
-  #ganttChart .ccname:hover{fill:#4f46e5}
+  #ganttChart .gtag:hover rect{fill:#e6e8ef}
+  #ganttChart .gtag:hover text{fill:#374151}
+  #ganttChart .ccname{transition:filter .12s}
+  #ganttChart .ccname:hover{filter:brightness(0.82)}
   #ganttChart .gtoday{font-size:9px;font-weight:800;fill:#fff}
   #ganttTip{position:absolute;display:none;pointer-events:none;background:#1f2430;color:#fff;
     font-size:12px;line-height:1.55;padding:8px 10px;border-radius:10px;box-shadow:0 6px 18px rgba(16,24,40,.25);
@@ -1718,27 +1718,23 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
         if(filtering && !compHasVis[r.company]){ curCompany=null; return; }
         curCompany=r.company; compStartY=y; compColor=r.color;
         const comp=r.company;
-        // 公司视觉锚点：右侧 16px 虚线 Logo 占位（品牌色描边 + 首字母）+ 公司名（近黑，不铺色）
+        // 公司视觉锚点：右侧 16px 虚线 Logo 占位（品牌色描边 + 首字母）+ 公司名（品牌色）
         const lx=W-34, ly=(y+compH/2-8).toFixed(1);
         h+=`<rect x="${lx}" y="${ly}" width="16" height="16" rx="5" fill="#ffffff" stroke="${r.color}" stroke-width="1.25" stroke-dasharray="2.5 2"/>`;
         h+=`<text x="${(lx+8).toFixed(1)}" y="${(y+compH/2+4).toFixed(1)}" text-anchor="middle" font-size="9.5" font-weight="800" fill="${r.color}">${escapeHtml(comp.slice(0,1))}</text>`;
-        h+=`<text class="ccname" x="16" y="${(y+compH/2+5).toFixed(1)}" font-size="14.5" font-weight="800" fill="#1f2430">${FLAG[r.region]||"🌐"} ${escapeHtml(comp)}</text>`;
+        h+=`<text class="ccname" x="16" y="${(y+compH/2+5).toFixed(1)}" font-size="15" font-weight="800" fill="${r.color}">${escapeHtml(comp)}</text>`;
         y+=compH;
       } else {
         const m=r.m, y0=y;
         if(filtering && !modelHasVis[m.company+"|"+m.name]) return;
-        h+=`<rect class="grow" x="0" y="${y0.toFixed(1)}" width="${W}" height="${rowH}" fill="#ffffff"/>`;
+        h+=`<rect class="grow" style="--mc:${m.color}" x="0" y="${y0.toFixed(1)}" width="${W}" height="${rowH}" fill="#ffffff"/>`;
         const vis=visibleEvents(m);
-        // 模型名（左）+ Arena Elo（同行靠右，不再置于最右评分栏）
+        // 模型名（左）+ Arena Elo（同行靠右，品牌色；无评分显示「—」）
         h+=`<text x="16" y="${(y0+17).toFixed(1)}" font-size="13" font-weight="600" fill="#1f2430">${escapeHtml(m.name)}</text>`;
-        if(m.rating!=null){
-          h+=`<text x="${(L-12).toFixed(1)}" y="${(y0+17).toFixed(1)}" text-anchor="end" font-size="12.5" font-weight="700" fill="#4b5161">${m.rating}</text>`;
-        } else {
-          h+=`<text x="${(L-12).toFixed(1)}" y="${(y0+17).toFixed(1)}" text-anchor="end" font-size="11.5" fill="#b7bcc8">—</text>`;
-        }
-        // 能力标签：统一浅灰胶囊（第二行），Hover 变品牌蓝；最多 3 个
+        h+=`<text x="${(L-12).toFixed(1)}" y="${(y0+17).toFixed(1)}" text-anchor="end" font-size="13" font-weight="800" fill="${m.color}">${m.rating==null?'—':m.rating}</text>`;
+        // 能力标签：统一浅灰胶囊（第二行），Hover 变深灰；最多 2 个
         let _tx=16;
-        (m.caps||["Chat"]).slice(0,3).forEach(cap=>{
+        (m.caps||["Chat"]).slice(0,2).forEach(cap=>{
           const cd=CAP_MAP[cap]||{label:cap};
           const _lab=cd.label;
           const _w=_lab.length*7.2+14;
@@ -1819,7 +1815,7 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
         const tier = versionTier(e.title);
         const col = tier==="minor" ? GREEN : (MILESTONE_FAMS.has(m.name) ? MAJOR : BLUE);
         const j=JSON.stringify({t:e.title,d:e.date,k:e.kind,s:e.source,f:e.file,
-          comp:m.company, mcap:m.main_cap, melo:(m.rating==null?'—':m.rating), mreg:m.region, major:!!e.major})
+          comp:m.company, mcap:m.main_cap, melo:(m.rating==null?'—':m.rating), mreg:m.region, mcol:m.color, major:!!e.major})
           .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
         if(markerMode==="dot"){
           h+=`<g class="gev" data-j="${j}" style="cursor:pointer">`+
@@ -1881,11 +1877,11 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
           `<div style="opacity:.82;margin-top:2px">来源：${escapeHtml(j.s)}</div>`+
           `<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px 12px;font-size:11.5px">`+
             `<span>🌐 ${escapeHtml(regLbl)}</span>`+
-            `<span>🏢 ${escapeHtml(j.comp)}</span>`+
+            `<span style="color:${j.mcol};font-weight:700">🏢 ${escapeHtml(j.comp)}</span>`+
             `<span>🎯 ${escapeHtml(capTxt)}</span>`+
-            `<span>📊 Arena Elo ${j.melo==='—'?'—':j.melo}</span>`+
+            `<span style="color:${j.mcol};font-weight:700">📊 Arena Elo ${j.melo==='—'?'—':j.melo}</span>`+
           `</div>`+
-          `<div style="margin-top:5px;color:#a5b4fc">点击查看当日日报 →</div>`;
+          `<div style="margin-top:5px;color:#9aa1b1">点击查看当日日报 →</div>`;
         tip.style.display="block";
       });
       g.addEventListener("mousemove",ev=>{
