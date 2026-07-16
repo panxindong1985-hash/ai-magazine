@@ -304,6 +304,8 @@ CAPS = {
 
 def _caps_of(fam):
     return CAPS.get(fam, ["Chat"])
+
+def _fetch_cherry_leaderboard():
     """拉取 Cherry AI 全量榜单 Markdown，返回 [(模型名串, Elo整数)]；失败返回 []。"""
     try:
         req = urllib.request.Request(RATINGS_API, headers={"User-Agent": "Mozilla/5.0"})
@@ -1431,6 +1433,10 @@ INDEX_TPL = r"""<!DOCTYPE html>
       <span class="glegend" data-legend="red" style="--lc:#ef4444" title="点击仅显示模型重磅更新">
         <i class="lg-dot"></i>模型重磅更新</span>
       <span class="gsep"></span>
+      <span class="glegend" style="--lc:#2563eb"><i class="lg-dot"></i>🇺🇸 美国</span>
+      <span class="glegend" style="--lc:#e11d48"><i class="lg-dot"></i>🇨🇳 中国</span>
+      <span class="glegend" style="--lc:#0d9488"><i class="lg-dot"></i>🇫🇷 法国</span>
+      <span class="gsep"></span>
       <span class="gcap-wrap" id="capFilters"></span>
       <span class="gsep"></span>
       <span style="align-self:center;font-size:12.5px;color:var(--muted)">标记：</span>
@@ -1555,6 +1561,7 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
   // 国家仅作章节（弱化），公司才是视觉锚点；品牌色只点缀（3px 竖线 / Hover / Logo 描边）
   const REGION_LABEL={us:"🇺🇸 美国",cn:"🇨🇳 中国",eu:"🇫🇷 法国"};
   const FLAG={us:"🇺🇸",cn:"🇨🇳",eu:"🇫🇷"};
+  const REGION_COLOR={us:"#2563eb",cn:"#e11d48",eu:"#0d9488"};   // 三国家别色块（左侧竖条 / 头部色带 / 底部分隔线）
   const headerH=44;                            // 国家章节头：标题(18px) + 浅灰副标题(模型/公司数)
   const compH=28;                              // 公司头：品牌色 3px 竖线 + 16px Logo 占位 + 名称 + 极细分割线
   // 能力维度：仅作为「模型标签」+ 顶部筛选，不再作为分组标题（避免打断阅读节奏）
@@ -1695,22 +1702,36 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
     }
     // 1) 区域带 + 公司分组头 + 模型行（每公司下展开各自模型）
     //    国家板块视觉增强：阵营头=国家色实底白字条；左侧粗竖色条贯穿整个板块；圆点/文字右移避让竖条
-    let overlay="";                 // 板块装饰层（竖色条），最后叠加到最上层确保可见
+    let overlay="";                 // 板块装饰层（国家色块竖条 + 公司品牌竖线），最后叠加到最上层确保可见
     let curCompany=null, compStartY=T, compColor="#888";
+    let curRegion=null, regStartY=T;
+    // 国家色块：贯穿整个国家板块的左侧竖条 + 板块底部国别色细分隔线（顶层绘制，不被白色行覆盖）
+    const flushRegion=(endY)=>{
+      if(curRegion && endY>regStartY+0.5){
+        const rc=REGION_COLOR[curRegion]||"#6b7280";
+        overlay+=`<rect x="0" y="${regStartY.toFixed(1)}" width="6" height="${(endY-regStartY).toFixed(1)}" fill="${rc}"/>`;
+        overlay+=`<line x1="0" y1="${endY.toFixed(1)}" x2="${W}" y2="${endY.toFixed(1)}" stroke="${rc}" stroke-width="1" opacity="0.35"/>`;
+      }
+    };
     const flushCompany=(endY)=>{
       if(curCompany && endY>compStartY+0.5){
-        overlay+=`<rect x="0" y="${compStartY.toFixed(1)}" width="3" height="${(endY-compStartY).toFixed(1)}" fill="${compColor}" opacity="0.9"/>`;
-        overlay+=`<line x1="0" y1="${endY.toFixed(1)}" x2="${W}" y2="${endY.toFixed(1)}" stroke="#eceef3" stroke-width="1"/>`;
+        overlay+=`<rect x="6" y="${compStartY.toFixed(1)}" width="3" height="${(endY-compStartY).toFixed(1)}" fill="${compColor}" opacity="0.9"/>`;
+        overlay+=`<line x1="9" y1="${endY.toFixed(1)}" x2="${W}" y2="${endY.toFixed(1)}" stroke="#eceef3" stroke-width="1"/>`;
       }
     };
     rows.forEach(r=>{
       if(r.type==="h"){
         flushCompany(y); curCompany=null;
-        if(filtering && !regHasVis[r.region]) return;
-        // 国家章节头：弱化显示（18px 近黑 + 浅灰副标题），无背景色块
+        flushRegion(y);
+        if(filtering && !regHasVis[r.region]) { curRegion=null; return; }
+        curRegion=r.region; regStartY=y;
+        const rc=REGION_COLOR[r.region]||"#6b7280";
         const lbl=REGION_LABEL[r.region]||r.region;
-        h+=`<text x="14" y="${(y+22).toFixed(1)}" font-size="18" font-weight="700" fill="#374151">${escapeHtml(lbl)}</text>`;
-        h+=`<text x="14" y="${(y+40).toFixed(1)}" font-size="11.5" font-weight="500" fill="#9aa1b1">${r.nModels} 个模型 · ${r.nCompanies} 家公司</text>`;
+        // 国家章节头：弱化标题 + 国别色块（左侧竖条由 flushRegion 叠加；此处头部淡色带 + 色块圆点）
+        h+=`<rect x="0" y="${y.toFixed(1)}" width="${W}" height="${headerH}" fill="${rc}" opacity="0.06"/>`;
+        h+=`<rect x="14" y="${(y+13).toFixed(1)}" width="11" height="11" rx="3.5" fill="${rc}"/>`;
+        h+=`<text x="31" y="${(y+22).toFixed(1)}" font-size="18" font-weight="700" fill="#374151">${escapeHtml(lbl)}</text>`;
+        h+=`<text x="31" y="${(y+40).toFixed(1)}" font-size="11.5" font-weight="500" fill="#9aa1b1">${r.nModels} 个模型 · ${r.nCompanies} 家公司</text>`;
         h+=`<line x1="0" y1="${(y+headerH).toFixed(1)}" x2="${W}" y2="${(y+headerH).toFixed(1)}" stroke="#eceef3" stroke-width="1"/>`;
         y+=headerH;
       } else if(r.type==="c"){
@@ -1750,6 +1771,7 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
       }
     });
     flushCompany(y);
+    flushRegion(y);
     const plotBottom=y;
     h+=overlay;
     // 左侧标签栏与绘图区分隔线（极淡）
