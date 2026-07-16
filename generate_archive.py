@@ -2460,6 +2460,17 @@ def compute_gantt(arch=None, top_n=GANTT_TOP_N):
 # 前端回退为中性灰色 ◇ 占位（非品牌色），表示「Logo 暂缺」。
 # 元组: (slug, wide, fmt)  ——  fmt ∈ {"svg","png"}；wide=横向字标(17×10)。
 _BRAND_FILES = {
+    # ── 品牌 Logo 检索策略（按优先级降序，灰色◇仅作最后一步）──────────────────────────
+    # 1. 官网 HTML / Brand Kit / Press Kit 中的 logo.svg / brand.svg / 官方 SVG 字标
+    # 2. 官网声明的 favicon / apple-touch-icon / app icon（优先透明或白/浅底）
+    # 3. 官方 GitHub / X(Twitter) / LinkedIn 的公司头像（必须是官方账号上传）
+    # 4. 可信第三方品牌库（Simple Icons / Brandfetch / Wikimedia / WorldVectorLogo），
+    #    必须人工比对官网 Logo 图形、颜色一致后才采用
+    # 5. 灰色 ◇ 中性占位（仅当以上来源均无可靠官方 Logo 时，最后一步）
+    # 所有 Logo 统一本地缓存到 assets/brands/，运行时不再外联。
+    # 来源清单见：assets/brands/brand_manifest.json
+    # ───────────────────────────────────────────────────────────────────────────────
+
     # —— 官方 SVG（Simple Icons 单色实底，按品牌色着色）——
     "OpenAI": ("openai", False, "svg"),
     "Anthropic": ("anthropic", False, "svg"),
@@ -2492,6 +2503,8 @@ _BRAND_FILES = {
     "Shengshu 生数": ("shengshu", False, "png"),
     "月之暗面": ("moonshot", False, "png"),
     "智谱": ("zhipu", False, "png"),
+    # —— 官方 GitHub / 社交媒体头像（官网 favicon 不透明/无透明版时使用）——
+    "Ideogram": ("ideogram", False, "png"),
 }
 def build_company_logo_js():
     """读取 assets/brands/ 下的 SVG / PNG，内联为 JS 常量（自包含，无需运行时外链）。

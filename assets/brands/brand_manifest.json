@@ -1,0 +1,327 @@
+{
+  "schema_version": "1.0",
+  "last_checked": "2026-07-17",
+  "search_strategy": "官网HTML/Brand Kit → 官方SVG → 官方favicon/apple-touch-icon → 官方GitHub/X/LinkedIn → 可信第三方品牌库(人工校验与官网图形/颜色一致) → 灰色◇(仅最后一步)",
+  "companies": [
+    {
+      "company": "OpenAI",
+      "official_website": "https://openai.com",
+      "logo_source_url": "https://simpleicons.org/?q=openai",
+      "source_type": "simple_icons",
+      "local_file": "assets/brands/openai.svg",
+      "verified": true,
+      "last_checked": "2026-07-17",
+      "notes": "Simple Icons 官方单色向量，源自 OpenAI 品牌标志"
+    },
+    {
+      "company": "Anthropic",
+      "official_website": "https://anthropic.com",
+      "logo_source_url": "https://simpleicons.org/?q=anthropic",
+      "source_type": "simple_icons",
+      "local_file": "assets/brands/anthropic.svg",
+      "verified": true,
+      "last_checked": "2026-07-17",
+      "notes": "Simple Icons 官方单色向量"
+    },
+    {
+      "company": "Google",
+      "official_website": "https://google.com",
+      "logo_source_url": "https://simpleicons.org/?q=google",
+      "source_type": "simple_icons",
+      "local_file": "assets/brands/google.svg",
+      "verified": true,
+      "last_checked": "2026-07-17",
+      "notes": "Simple Icons 官方单色向量"
+    },
+    {
+      "company": "Meta",
+      "official_website": "https://meta.com",
+      "logo_source_url": "https://simpleicons.org/?q=meta",
+      "source_type": "simple_icons",
+      "local_file": "assets/brands/meta.svg",
+      "verified": true,
+      "last_checked": "2026-07-17",
+      "notes": "Simple Icons 官方单色向量"
+    },
+    {
+      "company": "xAI",
+      "official_website": "https://x.ai",
+      "logo_source_url": "https://simpleicons.org/?q=x",
+      "source_type": "simple_icons",
+      "local_file": "assets/brands/x.svg",
+      "verified": true,
+      "last_checked": "2026-07-17",
+      "notes": "Simple Icons 官方单色向量（X 品牌标志）"
+    },
+    {
+      "company": "Microsoft",
+      "official_website": "https://microsoft.com",
+      "logo_source_url": "https://simpleicons.org/?q=microsoft",
+      "source_type": "simple_icons",
+      "local_file": "assets/brands/microsoft.svg",
+      "verified": true,
+      "last_checked": "2026-07-17",
+      "notes": "Simple Icons 官方单色向量"
+    },
+    {
+      "company": "Amazon",
+      "official_website": "https://amazon.com",
+      "logo_source_url": "https://simpleicons.org/?q=amazon",
+      "source_type": "simple_icons",
+      "local_file": "assets/brands/amazon.svg",
+      "verified": true,
+      "last_checked": "2026-07-17",
+      "notes": "Simple Icons 官方单色向量；宽字标"
+    },
+    {
+      "company": "NVIDIA",
+      "official_website": "https://nvidia.com",
+      "logo_source_url": "https://simpleicons.org/?q=nvidia",
+      "source_type": "simple_icons",
+      "local_file": "assets/brands/nvidia.svg",
+      "verified": true,
+      "last_checked": "2026-07-17",
+      "notes": "Simple Icons 官方单色向量"
+    },
+    {
+      "company": "Apple",
+      "official_website": "https://apple.com",
+      "logo_source_url": "https://simpleicons.org/?q=apple",
+      "source_type": "simple_icons",
+      "local_file": "assets/brands/apple.svg",
+      "verified": true,
+      "last_checked": "2026-07-17",
+      "notes": "Simple Icons 官方单色向量"
+    },
+    {
+      "company": "ElevenLabs",
+      "official_website": "https://elevenlabs.io",
+      "logo_source_url": "https://simpleicons.org/?q=elevenlabs",
+      "source_type": "simple_icons",
+      "local_file": "assets/brands/elevenlabs.svg",
+      "verified": true,
+      "last_checked": "2026-07-17",
+      "notes": "Simple Icons 官方单色向量"
+    },
+    {
+      "company": "Mistral",
+      "official_website": "https://mistral.ai",
+      "logo_source_url": "https://simpleicons.org/?q=mistral",
+      "source_type": "simple_icons",
+      "local_file": "assets/brands/mistralai.svg",
+      "verified": true,
+      "last_checked": "2026-07-17",
+      "notes": "Simple Icons 官方单色向量"
+    },
+    {
+      "company": "Kuaishou 快手",
+      "official_website": "https://kuaishou.com",
+      "logo_source_url": "https://simpleicons.org/?q=kuaishou",
+      "source_type": "simple_icons",
+      "local_file": "assets/brands/kuaishou.svg",
+      "verified": true,
+      "last_checked": "2026-07-17",
+      "notes": "Simple Icons 官方单色向量"
+    },
+    {
+      "company": "深度求索",
+      "official_website": "https://deepseek.com",
+      "logo_source_url": "https://simpleicons.org/?q=deepseek",
+      "source_type": "simple_icons",
+      "local_file": "assets/brands/deepseek.svg",
+      "verified": true,
+      "last_checked": "2026-07-17",
+      "notes": "Simple Icons 官方单色向量"
+    },
+    {
+      "company": "百度",
+      "official_website": "https://baidu.com",
+      "logo_source_url": "https://simpleicons.org/?q=baidu",
+      "source_type": "simple_icons",
+      "local_file": "assets/brands/baidu.svg",
+      "verified": true,
+      "last_checked": "2026-07-17",
+      "notes": "Simple Icons 官方单色向量"
+    },
+    {
+      "company": "阿里",
+      "official_website": "https://alibabacloud.com",
+      "logo_source_url": "https://simpleicons.org/?q=alibabacloud",
+      "source_type": "simple_icons",
+      "local_file": "assets/brands/alibabacloud.svg",
+      "verified": true,
+      "last_checked": "2026-07-17",
+      "notes": "Simple Icons 官方单色向量"
+    },
+    {
+      "company": "腾讯",
+      "official_website": "https://tencent.com",
+      "logo_source_url": "https://simpleicons.org/?q=tencentqq",
+      "source_type": "simple_icons",
+      "local_file": "assets/brands/tencentqq.svg",
+      "verified": true,
+      "last_checked": "2026-07-17",
+      "notes": "Simple Icons 官方单色向量"
+    },
+    {
+      "company": "字节",
+      "official_website": "https://bytedance.com",
+      "logo_source_url": "https://simpleicons.org/?q=bytedance",
+      "source_type": "simple_icons",
+      "local_file": "assets/brands/bytedance.svg",
+      "verified": true,
+      "last_checked": "2026-07-17",
+      "notes": "Simple Icons 官方单色向量"
+    },
+    {
+      "company": "稀宇科技",
+      "official_website": "https://minimaxi.com",
+      "logo_source_url": "https://simpleicons.org/?q=minimax",
+      "source_type": "simple_icons",
+      "local_file": "assets/brands/minimax.svg",
+      "verified": true,
+      "last_checked": "2026-07-17",
+      "notes": "Simple Icons 官方单色向量；公司对外品牌 MiniMax"
+    },
+    {
+      "company": "Midjourney",
+      "official_website": "https://midjourney.com",
+      "logo_source_url": "https://midjourney.com/favicon.ico",
+      "source_type": "official_favicon",
+      "local_file": "assets/brands/midjourney.png",
+      "verified": true,
+      "last_checked": "2026-07-17",
+      "notes": "官方 favicon（通过 Google favicon 服务获取），透明背景"
+    },
+    {
+      "company": "Runway",
+      "official_website": "https://runwayml.com",
+      "logo_source_url": "https://runwayml.com/favicon.ico",
+      "source_type": "official_favicon",
+      "local_file": "assets/brands/runway.png",
+      "verified": true,
+      "last_checked": "2026-07-17",
+      "notes": "官方 favicon，透明背景"
+    },
+    {
+      "company": "StepFun 阶跃",
+      "official_website": "https://stepfun.ai",
+      "logo_source_url": "https://stepfun.ai/favicon.ico",
+      "source_type": "official_favicon",
+      "local_file": "assets/brands/stepfun.png",
+      "verified": true,
+      "last_checked": "2026-07-17",
+      "notes": "官方 favicon，透明背景"
+    },
+    {
+      "company": "Black Forest Labs",
+      "official_website": "https://blackforestlabs.ai",
+      "logo_source_url": "https://blackforestlabs.ai/favicon.ico",
+      "source_type": "official_favicon",
+      "local_file": "assets/brands/blackforest.png",
+      "verified": true,
+      "last_checked": "2026-07-17",
+      "notes": "官方 favicon，透明背景"
+    },
+    {
+      "company": "百川",
+      "official_website": "https://baichuan-ai.com",
+      "logo_source_url": "https://baichuan-ai.com/favicon.ico",
+      "source_type": "official_favicon",
+      "local_file": "assets/brands/baichuan.png",
+      "verified": true,
+      "last_checked": "2026-07-17",
+      "notes": "官方 favicon，透明背景"
+    },
+    {
+      "company": "Thinking Machines",
+      "official_website": "https://thinkingmachines.ai",
+      "logo_source_url": "https://thinkingmachines.ai/favicon.ico",
+      "source_type": "official_favicon",
+      "local_file": "assets/brands/thinking.png",
+      "verified": true,
+      "last_checked": "2026-07-17",
+      "notes": "官方 favicon，透明背景"
+    },
+    {
+      "company": "讯飞星火",
+      "official_website": "https://iflytek.com",
+      "logo_source_url": "https://iflytek.com/favicon.ico",
+      "source_type": "official_favicon",
+      "local_file": "assets/brands/iflytek.png",
+      "verified": true,
+      "last_checked": "2026-07-17",
+      "notes": "官方 favicon（讯飞官网声明）"
+    },
+    {
+      "company": "Luma",
+      "official_website": "https://luma.ai",
+      "logo_source_url": "https://luma.ai/favicon.ico",
+      "source_type": "official_favicon",
+      "local_file": "assets/brands/luma.png",
+      "verified": true,
+      "last_checked": "2026-07-17",
+      "notes": "官方 favicon，透明背景"
+    },
+    {
+      "company": "Cartesia",
+      "official_website": "https://cartesia.ai",
+      "logo_source_url": "https://cartesia.ai/favicon.ico",
+      "source_type": "official_favicon",
+      "local_file": "assets/brands/cartesia.png",
+      "verified": true,
+      "last_checked": "2026-07-17",
+      "notes": "官方 favicon，透明背景"
+    },
+    {
+      "company": "Shengshu 生数",
+      "official_website": "https://shengshu.ai",
+      "logo_source_url": "https://shengshu.ai/favicon.ico",
+      "source_type": "official_favicon",
+      "local_file": "assets/brands/shengshu.png",
+      "verified": true,
+      "last_checked": "2026-07-17",
+      "notes": "官方 favicon，透明背景"
+    },
+    {
+      "company": "月之暗面",
+      "official_website": "https://moonshot.cn",
+      "logo_source_url": "https://moonshot.cn/favicon.ico",
+      "source_type": "official_favicon",
+      "local_file": "assets/brands/moonshot.png",
+      "verified": true,
+      "last_checked": "2026-07-17",
+      "notes": "官方 favicon（kimi.com 透明版）"
+    },
+    {
+      "company": "智谱",
+      "official_website": "https://zhipuai.cn",
+      "logo_source_url": "https://zhipuai.cn/favicon.ico",
+      "source_type": "official_favicon",
+      "local_file": "assets/brands/zhipu.png",
+      "verified": true,
+      "last_checked": "2026-07-17",
+      "notes": "官方 favicon（bigmodel.cn 透明版）"
+    },
+    {
+      "company": "Ideogram",
+      "official_website": "https://ideogram.ai",
+      "logo_source_url": "https://github.com/ideogram-ai",
+      "source_type": "official_github",
+      "local_file": "assets/brands/ideogram.png",
+      "verified": true,
+      "last_checked": "2026-07-17",
+      "notes": "官方 GitHub 组织头像（公司官方账号上传），为品牌标准图标；官网 favicon 同图形"
+    }
+  ],
+  "stats": {
+    "total": 31,
+    "official_favicon": 12,
+    "official_github": 1,
+    "simple_icons": 18,
+    "fallback": 0,
+    "png": 13,
+    "svg": 18,
+    "real_logo_coverage": "31/31 (100.0%)"
+  }
+}
