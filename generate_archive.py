@@ -880,7 +880,7 @@ DAY_TPL = r"""<!DOCTYPE html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>AI HOT 日报 · __REPORTDATE__</title>
+<title>AI HOT 资讯 · __REPORTDATE__</title>
 <style>
   :root{--bg:#f5f6fb;--card:#fff;--ink:#1f2430;--muted:#6b7280;--line:#e8eaf1;
     --shadow:0 1px 3px rgba(16,24,40,.06),0 8px 24px rgba(16,24,40,.05);}
@@ -976,7 +976,7 @@ DAY_TPL = r"""<!DOCTYPE html>
 <body>
   <header class="hero"><div class="wrap">
     <p class="kicker">AI HOT Daily · 晨报</p>
-    <h1>AI 日报 · __REPORTDATEHUMAN__</h1>
+    <h1>AI 资讯 · __REPORTDATEHUMAN__</h1>
     <p class="date-line">__WEEKDAY__ · 数据来源：__SOURCE__</p>
     <div class="total-pill">📊 当日共 <strong style="margin:0 4px">__TOTAL__</strong> 条 AI 动态</div>
     <div class="stats" id="stats"></div>
