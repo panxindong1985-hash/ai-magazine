@@ -218,17 +218,30 @@ RATINGS = {
     "星火": None,
 }
 
-# ── LMArena Elo 评分：每日自动刷新（文本综合榜）──────────────────────────────
-# 数据源：社区每日快照（LMArena 官方无公开 API）。免费、无需鉴权：
-#   主：https://api.wulong.dev/arena-ai-leaderboards/v1/leaderboard?name=text
-#   备：https://raw.githubusercontent.com/oolong-tea-2026/arena-ai-leaderboards/main/data/latest.json
-# 拉取结果缓存到 ratings_cache.json（带时间戳并提交），任何失败都回退到上方静态 RATINGS。
+# ── LMArena Elo 评分：每日自动刷新（综合对话榜，全量）─────────────────────────
+# 数据源：Cherry AI 文档每日从 lmarena.ai 直抓生成的「全量」榜单 Markdown。
+#   免费、无需鉴权；上游每日自动更新（页脚标注更新时间），我们每次构建重新拉取。
+#   原始页面：https://docs.cherryai.com.cn/other/lmarena  （.md 版可直接抓取解析）
+#   覆盖 373 个模型，含中美欧主流及中国模型（混元/文心/通义/智谱/DeepSeek/Kimi/MiniMax/StepFun/Yi…），
+#   比原社区镜像（仅 top-20）覆盖更全，且能自动补上此前为 None 的中国模型。
+# 拉取结果缓存到 ratings_cache.json（带时间戳并提交）；任何失败都回退到上方静态 RATINGS。
 RATINGS_CACHE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ratings_cache.json")
-RATINGS_API_PRIMARY = "https://api.wulong.dev/arena-ai-leaderboards/v1/leaderboard?name=text"
-RATINGS_API_SECONDARY = "https://raw.githubusercontent.com/oolong-tea-2026/arena-ai-leaderboards/main/data/latest.json"
+RATINGS_API = "https://docs.cherryai.com.cn/other/lmarena.md"
+# 模型类型分类：决定评分栏如何呈现（综合对话榜 Elo 仅对文本/多模态对话模型有效；
+# 图像/视频生成模型不在该榜，保持「—」并在行内以类型标签说明）。
+FAM_TYPE = {
+    # 文本对话大模型
+    "GPT": "文本", "OpenAI o 系列": "文本", "Claude": "文本", "Gemini": "文本",
+    "Gemma": "文本", "Llama": "文本", "Grok": "文本", "DeepSeek 系列": "文本",
+    "文心 ERNIE": "文本", "通义千问 Qwen": "文本", "混元": "文本", "智谱 GLM": "文本",
+    "Kimi": "文本", "Mistral 系列": "文本", "MiniMax 系列": "文本", "星火": "文本",
+    "Baichuan": "文本", "豆包": "文本", "Coze 扣子": "文本", "Copilot": "文本",
+    "Nova": "文本", "Titan": "文本", "Apple 基础模型": "文本",
+    # 生成式媒体（无文本 Arena 分）
+    "Sora": "视频", "Veo": "视频", "Seedance": "视频", "即梦": "图像", "DALL·E": "图像",
+}
 # 家族 → LMArena 模型名匹配规则：(家族key, [名称子串], [厂商子串(可空)], [排除子串])
 # 评分取该家族所有命中模型中的最高 Elo（即旗舰），与上方静态字典“区间顶端”意图一致。
-# 注：图像/视频模型（Sora/DALL·E/Veo/Seedance/即梦 等）在文本榜无 Elo，保持 None（显示「—」）。
 LM_MAP = [
     ("GPT",              ["gpt"],                  [],            []),
     ("OpenAI o 系列",     ["o1", "o3", "o4", "o2"],  [],            ["gpt"]),
@@ -251,43 +264,51 @@ LM_MAP = [
     ("星火",              ["spark", "iflytek"],     [],            []),
 ]
 
-def _fetch_text_leaderboard():
-    """返回 LMArena 文本榜模型列表（list[dict]），失败返回 []。"""
-    for url in (RATINGS_API_PRIMARY, RATINGS_API_SECONDARY):
-        try:
-            data = http_get_json(url)
-        except Exception:
+def _fetch_cherry_leaderboard():
+    """拉取 Cherry AI 全量榜单 Markdown，返回 [(模型名串, Elo整数)]；失败返回 []。"""
+    try:
+        req = urllib.request.Request(RATINGS_API, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=25) as r:
+            raw = r.read().decode("utf-8", "replace")
+    except Exception:
+        return []
+    out = []
+    for line in raw.splitlines():
+        s = line.strip()
+        if not s.startswith("|") or "---" in s:
             continue
-        models = data.get("models") if isinstance(data, dict) else None
-        if models:
-            return models
-    return []
+        cells = [c.strip() for c in s.strip("|").split("|")]
+        if len(cells) < 5:
+            continue
+        if cells[0] == "Rank" or cells[2] == "模型":   # 跳过表头
+            continue
+        m = re.search(r"(\d{3,4})", cells[3])           # 分数形如 1508±7 / 1508±7Preliminary
+        if not m:
+            continue
+        elo = int(m.group(1))
+        if elo < 1000 or elo > 1800:                    # 合理性过滤
+            continue
+        out.append((cells[2], elo))
+    return out
 
 def fetch_live_ratings():
-    """从 LMArena 文本榜解析出 {家族key: 最高Elo}，失败返回 {}。"""
-    models = _fetch_text_leaderboard()
-    if not models:
+    """从 Cherry 全量榜单解析出 {家族key: 最高Elo}，失败返回 {}。"""
+    rows = _fetch_cherry_leaderboard()
+    if not rows:
         return {}
     out = {}
     for fam, name_pats, vend_pats, excl_pats in LM_MAP:
         best = None
-        for m in models:
-            name = (m.get("model") or "").lower()
-            vendor = (m.get("vendor") or "").lower()
-            if not any(p in name for p in name_pats):
+        for model, elo in rows:
+            ml = model.lower()
+            if not any(p in ml for p in name_pats):
                 continue
-            if excl_pats and any(p in name for p in excl_pats):
+            if excl_pats and any(p in ml for p in excl_pats):
                 continue
-            if vend_pats and not any(v in vendor for v in vend_pats):
+            if vend_pats and not any(v in ml for v in vend_pats):
                 continue
-            sc = m.get("score")
-            if not isinstance(sc, (int, float)):
-                continue
-            sc = int(sc)
-            if sc < 1000 or sc > 1800:   # 合理性过滤，丢弃异常值
-                continue
-            if best is None or sc > best:
-                best = sc
+            if best is None or elo > best:
+                best = elo
         if best is not None:
             out[fam] = best
     return out
@@ -1645,7 +1666,14 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
         const vis=visibleEvents(m);
         h+=`<circle cx="29" cy="${(y0+rowH/2).toFixed(1)}" r="4" fill="${m.color}"/>`;
         h+=`<text x="41" y="${(y0+rowH/2+4).toFixed(1)}" font-size="11.5" font-weight="600" fill="#3a3f4b">${escapeHtml(m.name)}</text>`;
-        h+=`<text x="${L-12}" y="${(y0+rowH/2+4).toFixed(1)}" text-anchor="end" font-size="10.5" fill="#9aa1b1">${vis.length}</text>`;
+        // 类型标签：文本 / 图像 / 视频（图像、视频生成模型不在综合对话榜，评分栏显示「—」）
+        const MTYPE={"文本":["文本","#eef2ff","#4f46e5"],"图像":["图像","#f3e8ff","#7c3aed"],"视频":["视频","#ffeef3","#db2777"]};
+        const mt=MTYPE[m.mtype]||MTYPE["文本"];
+        let _nx=41; for(const _ch of m.name){ _nx += (_ch.charCodeAt(0)>255?12:7); }
+        const _PW=30, _px=Math.min(_nx+6, L-_PW-32), _py=(y0+rowH/2-8).toFixed(1);
+        h+=`<rect x="${_px.toFixed(1)}" y="${_py}" width="${_PW}" height="16" rx="8" fill="${mt[1]}"/>`;
+        h+=`<text x="${(_px+_PW/2).toFixed(1)}" y="${(y0+rowH/2+4).toFixed(1)}" text-anchor="middle" font-size="10" font-weight="700" fill="${mt[2]}">${mt[0]}</text>`;
+        h+=`<text x="${L-26}" y="${(y0+rowH/2+4).toFixed(1)}" text-anchor="end" font-size="10.5" fill="#9aa1b1">${vis.length}</text>`;
         // 右侧评分栏：色条 + 分数（无公开可比分数显示「—」）
         if(m.rating!=null){
           const rv=m.rating;
@@ -1675,7 +1703,7 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
     // 2) 时间轴：内容加权列宽（稀疏年细、密集年宽）+ 顶部年份标签
     h+=`<rect x="0" y="0" width="${W}" height="${T}" fill="#ffffff"/>`;
     h+=`<line x1="0" y1="${T}" x2="${W}" y2="${T}" stroke="#e4e7ef" stroke-width="1"/>`;
-    h+=`<text x="${(W-4)}" y="${(T-4).toFixed(1)}" text-anchor="end" font-size="9.5" font-weight="800" fill="#9aa1b1">LMArena Elo（每日更新）↓</text>`;
+    h+=`<text x="${(W-4)}" y="${(T-4).toFixed(1)}" text-anchor="end" font-size="9.5" font-weight="800" fill="#9aa1b1">LMArena Elo·综合对话↓</text>`;
     BANDS.forEach((b,i)=>{
       const x0=xOfUnits(cumBeforeB[b.label]);            // 该分组列左边界
       const x1=xOfUnits(cumBeforeB[b.label]+bandUnits[b.label]); // 右边界
@@ -1764,7 +1792,7 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
     if(stickyYearsSvg){
       let yh=`<rect x="0" y="0" width="${W}" height="${T}" fill="#ffffff"/>`;
       yh+=`<line x1="0" y1="${T}" x2="${W}" y2="${T}" stroke="#e4e7ef" stroke-width="1"/>`;
-      yh+=`<text x="${(W-4)}" y="${(T-4).toFixed(1)}" text-anchor="end" font-size="9.5" font-weight="800" fill="#9aa1b1">LMArena Elo（每日更新）↓</text>`;
+      yh+=`<text x="${(W-4)}" y="${(T-4).toFixed(1)}" text-anchor="end" font-size="9.5" font-weight="800" fill="#9aa1b1">LMArena Elo·综合对话↓</text>`;
       BANDS.forEach((b,i)=>{
         const x0=xOfUnits(cumBeforeB[b.label]);
         const x1=xOfUnits(cumBeforeB[b.label]+bandUnits[b.label]);
@@ -1951,7 +1979,8 @@ def compute_gantt(arch=None, top_n=GANTT_TOP_N):
         g = groups.get(key)
         if not g:
             g = {"company": comp, "name": fam, "color": ccolor,
-                 "region": cregion, "events": [], "rating": resolve_rating(fam)}
+                 "region": cregion, "events": [], "rating": resolve_rating(fam),
+                 "mtype": FAM_TYPE.get(fam, "文本")}
             groups[key] = g
         g["events"].append({
             "date": date, "kind": kind, "title": title,

@@ -1,13 +1,23 @@
 {
-  "updated_at": 1784220979,
+  "updated_at": 1784222958,
   "ratings": {
     "GPT": 1484,
+    "OpenAI o 系列": 1431,
     "Claude": 1508,
     "Gemini": 1486,
+    "Gemma": 1451,
+    "Llama": 1347,
     "Grok": 1474,
+    "DeepSeek 系列": 1457,
+    "文心 ERNIE": 1468,
     "通义千问 Qwen": 1475,
+    "智谱 GLM": 1472,
+    "混元": 1413,
+    "Kimi": 1462,
+    "Mistral 系列": 1427,
+    "MiniMax 系列": 1445,
     "星火": 1491
   },
-  "source": "arena-ai-leaderboards(text)",
-  "models_total": 20
+  "source": "cherryai-lmarena-md",
+  "models_total": 369
 }
