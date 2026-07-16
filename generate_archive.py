@@ -962,6 +962,8 @@ DAY_TPL = r"""<!DOCTYPE html>
   .reader-body .r-img-cap{display:inline-block;margin:6px 0;padding:4px 10px;border-radius:8px;background:#f1f3f9;color:#8a93a6;font-size:13px;font-style:italic;border:1px dashed #d7dce8}
   .reader-body .r-empty{color:#6b7280;font-style:italic}
   .reader-body .r-summary{margin:0 0 14px;white-space:pre-wrap}
+  .reader-body a.r-link{color:#2563eb;text-decoration:underline;text-underline-offset:2px;word-break:break-all}
+  .reader-body a.r-link:hover{color:#1d4ed8}
   .reader-body .r-fallback{background:#f5f3ff;border:1px solid #e4defb;color:#5b21b6;border-radius:10px;
     padding:10px 14px;font-size:13px;line-height:1.7;margin:0 0 16px}
   .reader-body .r-fallback b{color:#6d28d9}
@@ -1048,18 +1050,32 @@ sections.forEach((s,i)=>{
 function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 function escapeAttr(s){return escapeHtml(s);}
 // 渲染正文（纯文本归档）：图片不加载远程资源，仅以文字占位符呈现；其余文本按段落转义（防 XSS）
+function linkify(escaped){
+  if(!escaped) return escaped;
+  var re=/(\[[^\]]+\]\((https?:\/\/[^)\s]+)\))|(https?:\/\/[^\s<>"'）】」』，。、；：！？]+)/g;
+  return escaped.replace(re, function(m, g1, g2, g3){
+    if(g2!==undefined){
+      var label=m.substring(m.indexOf('[')+1, m.indexOf(']'));
+      return '<a class="r-link" href="'+g2+'" target="_blank" rel="noopener noreferrer">'+label+'</a>';
+    }
+    if(g3!==undefined){
+      return '<a class="r-link" href="'+g3+'" target="_blank" rel="noopener noreferrer">'+g3+'</a>';
+    }
+    return m;
+  });
+}
 var _IMG_RE=/!\[([^\]]*)\]\(([^)\s]+)\)/g;
 function renderRich(text){
   return (text||"").split(/\n{1,}/).map(function(p){
     p=p.trim(); if(!p) return '';
     var out=''; var last=0; var m; _IMG_RE.lastIndex=0;
     while((m=_IMG_RE.exec(p))!==null){
-      out+=escapeHtml(p.slice(last,m.index));
+      out+=linkify(escapeHtml(p.slice(last,m.index)));
       var cap=(m[1]||'').trim()||'图片';
       out+='<span class="r-img-cap">🖼 '+escapeHtml(cap)+'</span>';
       last=_IMG_RE.lastIndex;
     }
-    out+=escapeHtml(p.slice(last));
+    out+=linkify(escapeHtml(p.slice(last)));
     return '<p>'+out+'</p>';
   }).join("");
 }
@@ -1074,7 +1090,7 @@ function openReader(it){
     if(sum){
       // 来源站点多为付费墙 / 登录墙 / 反爬限制，无法镜像全文；展示已本地存档的中文摘要兜底
       body.innerHTML='<div class="r-fallback">⚠️ 该条新闻的<b>全文镜像暂不可用</b>（来源站点可能为付费墙 / 登录墙 / 反爬限制，或原文已失效）。下方为已<b>本地存档的中文摘要</b>，可正常查看；完整原文请点击右下角「查看原文 ↗」。</div>'+
-        '<p class="r-summary">'+escapeHtml(sum)+'</p>';
+        '<p class="r-summary">'+linkify(escapeHtml(sum))+'</p>';
     }else{
       body.innerHTML='<p class="r-empty">暂未获取到该条新闻的全文镜像与摘要。'+(it.url?'可点击右下角「查看原文 ↗」前往原始报道。':'')+'</p>';
     }

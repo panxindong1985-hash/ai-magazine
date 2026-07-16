@@ -85,6 +85,8 @@
   .reader-body .r-img-cap{display:inline-block;margin:6px 0;padding:4px 10px;border-radius:8px;background:#f1f3f9;color:#8a93a6;font-size:13px;font-style:italic;border:1px dashed #d7dce8}
   .reader-body .r-empty{color:#6b7280;font-style:italic}
   .reader-body .r-summary{margin:0 0 14px;white-space:pre-wrap}
+  .reader-body a.r-link{color:#2563eb;text-decoration:underline;text-underline-offset:2px;word-break:break-all}
+  .reader-body a.r-link:hover{color:#1d4ed8}
   .reader-body .r-fallback{background:#f5f3ff;border:1px solid #e4defb;color:#5b21b6;border-radius:10px;
     padding:10px 14px;font-size:13px;line-height:1.7;margin:0 0 16px}
   .reader-body .r-fallback b{color:#6d28d9}
@@ -127,7 +129,7 @@
     </div>
   </div>
 <script>
-const DATA = {"meta": {"reportDate": "2026-06-21", "reportDateHuman": "2026年6月21日", "weekday": "星期日", "total": 2, "source": "AI HOT", "sourceUrl": "https://aihot.virxact.com", "generatedAt": "2026年07月14日 17:28"}, "sections": [{"label": "行业动态", "color": "#d97706", "items": [{"seq": 1, "title": "微软双向转售GPT与DeepSeek成全球最大AI中间商", "source": "X：阿易 AI Notes (@AYi_AInotes)", "summary": "彭博社报道，微软已成为全球最大AI模型中转站，既将ChatGPT卖给中国企业，也反向将DeepSeek模型卖给西方客户。报道称微软正在测试DeepSeek-R1和DeepSeek-V4，计划向西方客户提供这些中国模型。这一模式构建起跨中美AI模型的双向贸易网络。", "url": "https://x.com/AYi_AInotes/status/2068218661710512231", "publishedAt": "2026-06-21T00:00:00.000Z", "exact": false, "content": "还得是微软会闷声发大财啊，它现在已经成为全球最大的 AI 中间商，oh no ，是最大的中转站，\n不仅把ChatGPT卖给中国企业，也把DeepSeek 反向卖给西方客户😁\n以上来自彭博社的最新报道，绝对权威可信，看完让我意外的不仅仅是微软把 GPT 卖给中国那部分，后面那一句：微软同时在测试 DeepSeek-R1 和 DeepSeek-V4，准备把这些中国模型卖给西方客户。\n好家伙，左手接 GPT 卖到中国，右手接 DeepSeek 卖到西方，这他么不是一家 AI 公司在卖模型，简直就是一个跨中美 AI 模型的双向贸易网络正在成形呀", "zh": true}]}, {"label": "技巧与观点", "color": "#0284c7", "items": [{"seq": 2, "title": "开源教程《Deep Agents 实战》发布", "source": "X：邵猛 (@shao__meng)", "summary": "LangChain 官方认证大使 @zhanghaili0610 推出开源教程《Deep Agents 实战》，基于 LangChain / LangGraph 生态，讲解如何用 Deep Agents Harness 框架构建真实 Agent 应用。核心是“三层架构”：Runtime（LangGraph）、Framework（LangChain）、Harness（Deep Agents）。技术内核为上下文工程，通过虚拟文件系统实现按需读取、中间结果落盘、大文件局部读取。教程共 8 章 + 2 准备篇，覆盖虚拟文件系统（六大工具）、任务规划、子 Agent 委派（异步并行）及 Skills 复用（可在 Claude Code、Cur…", "url": "https://x.com/shao__meng/status/2068306942184034471", "publishedAt": "2026-06-21T00:00:00.000Z", "exact": false, "content": "开源技术教程「Deep Agents 实战」，LangChain 官方认证大使 @zhanghaili0610 出品，他也是「LangChain 实战」「LangGraph 实战」的作者\ngithub.com/datawhalechina…\n教程的核心是：基于 LangChain / LangGraph 生态，面向开发者讲解如何\"用好\" Deep Agents 这个 Harness 框架来构建真实应用。\n核心思想：Agent 开发的\"三层架构\"\n1. Runtime（运行时）：LangGraph，持久化执行、断点恢复、流式输出、人机协作\n2. Framework（框架）：LangChain，模型抽象、工具接口、Agent 循环、中间件\n3. Harness（套件）：Deep Agents ←本课主角，预置文件系统、任务规划、子 Agent、长期记忆\n技术内核：上下文工程\nDeep Agents 做法：引入虚拟文件系统，让 Agent 像人类一样工作：\n· 需要时才 read_file 按需读取\n· 中间结果 write_file 落盘\n· 大文件用 offset/limit 局部读取\n· 上下文里只保留当前步骤真正需要的信息\n· 这个文件系统还是可插拔的——内存、本地磁盘、数据库、远程沙箱、甚至混合路由，都可作为后端。\n章节结构（8 章 + 2 准备篇）\n· 准备篇 ── AgentSeek 环境搭建、开发技能安装\n· 认知篇 ── ch01 三层架构 / ch02 5分钟快速上手\n· 核心篇 ── ch03 虚拟文件系统 / ch04 任务规划 / ch05 子Agent / ch06 异步子Agent\n· 进阶篇 ── ch07 Skills / ch08 长期记忆\n· 规划中 ── Human-in-the-Loop、沙箱执行、流式前端、数据分析Agent、生产部署\n四个核心能力的演进脉络值得注意：\n· 虚拟文件系统（ch03）—— 六大工具：read_file / write_file / edit_file / ls / glob / grep\n· 任务规划（ch04）—— write_todos 让 Agent 拆解并追踪复杂任务\n· 子 Agent 委派（ch05-06）—— task 工具派发子任务，ch06 引入异步并行\n· Skills 复用（ch07）—— 遵循开放的 Agent Skills 规范，编写的 Skill 可在 Claude Code、Cursor、Codex 等 30+ 工具中通用（\"Skills 之于 AI Agent，就像 npm 包之于 Node.js\"）\nA gift to the Chinese developer community for anyone building agents on @LangChain:\nAfter 2 books on the ecosystem, I open-sourced the third — Deep Agents in Action. 8 chapters live and counting, on the Agent Harness: planning, context engineering, sub-agents, Skills, memory.", "zh": true}]}]};
+const DATA = {"meta": {"reportDate": "2026-06-21", "reportDateHuman": "2026年6月21日", "weekday": "星期日", "total": 2, "source": "AI HOT", "sourceUrl": "https://aihot.virxact.com", "generatedAt": "2026年07月14日 17:28"}, "sections": [{"label": "行业动态", "color": "#d97706", "items": [{"seq": 1, "title": "微软双向转售GPT与DeepSeek成全球最大AI中间商", "source": "X：阿易 AI Notes (@AYi_AInotes)", "summary": "彭博社报道，微软已成为全球最大AI模型中转站，既将ChatGPT卖给中国企业，也反向将DeepSeek模型卖给西方客户…", "url": "https://x.com/AYi_AInotes/status/2068218661710512231", "publishedAt": "2026-06-21T00:00:00.000Z", "exact": false, "content": "还得是微软会闷声发大财啊，它现在已经成为全球最大的 AI 中间商，oh no ，是最大的中转站，\n不仅把ChatGPT卖给中国企业，也把DeepSeek 反向卖给西方客户😁\n以上来自彭博社的最新报道，绝对权威可信，看完让我意外的不仅仅是微软把 GPT 卖给中国那部分，后面那一句：微软同时在测试 DeepSeek-R1 和 DeepSeek-V4，准备把这些中国模型卖给西方客户。\n好家伙，左手接 GPT 卖到中国，右手接 DeepSeek 卖到西方，这他么不是一家 AI 公司在卖模型，简直就是一个跨中美 AI 模型的双向贸易网络正在成形呀", "zh": true}]}, {"label": "技巧与观点", "color": "#0284c7", "items": [{"seq": 2, "title": "开源教程《Deep Agents 实战》发布", "source": "X：邵猛 (@shao__meng)", "summary": "LangChain 官方认证大使 @zhanghaili0610 推出开源教程《Deep Agents 实战》，基于 …", "url": "https://x.com/shao__meng/status/2068306942184034471", "publishedAt": "2026-06-21T00:00:00.000Z", "exact": false, "content": "开源技术教程「Deep Agents 实战」，LangChain 官方认证大使 @zhanghaili0610 出品，他也是「LangChain 实战」「LangGraph 实战」的作者\ngithub.com/datawhalechina…\n教程的核心是：基于 LangChain / LangGraph 生态，面向开发者讲解如何\"用好\" Deep Agents 这个 Harness 框架来构建真实应用。\n核心思想：Agent 开发的\"三层架构\"\n1. Runtime（运行时）：LangGraph，持久化执行、断点恢复、流式输出、人机协作\n2. Framework（框架）：LangChain，模型抽象、工具接口、Agent 循环、中间件\n3. Harness（套件）：Deep Agents ←本课主角，预置文件系统、任务规划、子 Agent、长期记忆\n技术内核：上下文工程\nDeep Agents 做法：引入虚拟文件系统，让 Agent 像人类一样工作：\n· 需要时才 read_file 按需读取\n· 中间结果 write_file 落盘\n· 大文件用 offset/limit 局部读取\n· 上下文里只保留当前步骤真正需要的信息\n· 这个文件系统还是可插拔的——内存、本地磁盘、数据库、远程沙箱、甚至混合路由，都可作为后端。\n章节结构（8 章 + 2 准备篇）\n· 准备篇 ── AgentSeek 环境搭建、开发技能安装\n· 认知篇 ── ch01 三层架构 / ch02 5分钟快速上手\n· 核心篇 ── ch03 虚拟文件系统 / ch04 任务规划 / ch05 子Agent / ch06 异步子Agent\n· 进阶篇 ── ch07 Skills / ch08 长期记忆\n· 规划中 ── Human-in-the-Loop、沙箱执行、流式前端、数据分析Agent、生产部署\n四个核心能力的演进脉络值得注意：\n· 虚拟文件系统（ch03）—— 六大工具：read_file / write_file / edit_file / ls / glob / grep\n· 任务规划（ch04）—— write_todos 让 Agent 拆解并追踪复杂任务\n· 子 Agent 委派（ch05-06）—— task 工具派发子任务，ch06 引入异步并行\n· Skills 复用（ch07）—— 遵循开放的 Agent Skills 规范，编写的 Skill 可在 Claude Code、Cursor、Codex 等 30+ 工具中通用（\"Skills 之于 AI Agent，就像 npm 包之于 Node.js\"）\nA gift to the Chinese developer community for anyone building agents on @LangChain:\nAfter 2 books on the ecosystem, I open-sourced the third — Deep Agents in Action. 8 chapters live and counting, on the Agent Harness: planning, context engineering, sub-agents, Skills, memory.", "zh": true}]}]};
 function pad(n){return n<10?"0"+n:""+n;}
 function toBeijingHuman(iso, ref, exact){
   const d=new Date(iso); const bj=new Date(d.getTime()+8*3600*1000);
@@ -171,18 +173,32 @@ sections.forEach((s,i)=>{
 function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 function escapeAttr(s){return escapeHtml(s);}
 // 渲染正文（纯文本归档）：图片不加载远程资源，仅以文字占位符呈现；其余文本按段落转义（防 XSS）
+function linkify(escaped){
+  if(!escaped) return escaped;
+  var re=/(\[[^\]]+\]\((https?:\/\/[^)\s]+)\))|(https?:\/\/[^\s<>"'）】」』，。、；：！？]+)/g;
+  return escaped.replace(re, function(m, g1, g2, g3){
+    if(g2!==undefined){
+      var label=m.substring(m.indexOf('[')+1, m.indexOf(']'));
+      return '<a class="r-link" href="'+g2+'" target="_blank" rel="noopener noreferrer">'+label+'</a>';
+    }
+    if(g3!==undefined){
+      return '<a class="r-link" href="'+g3+'" target="_blank" rel="noopener noreferrer">'+g3+'</a>';
+    }
+    return m;
+  });
+}
 var _IMG_RE=/!\[([^\]]*)\]\(([^)\s]+)\)/g;
 function renderRich(text){
   return (text||"").split(/\n{1,}/).map(function(p){
     p=p.trim(); if(!p) return '';
     var out=''; var last=0; var m; _IMG_RE.lastIndex=0;
     while((m=_IMG_RE.exec(p))!==null){
-      out+=escapeHtml(p.slice(last,m.index));
+      out+=linkify(escapeHtml(p.slice(last,m.index)));
       var cap=(m[1]||'').trim()||'图片';
       out+='<span class="r-img-cap">🖼 '+escapeHtml(cap)+'</span>';
       last=_IMG_RE.lastIndex;
     }
-    out+=escapeHtml(p.slice(last));
+    out+=linkify(escapeHtml(p.slice(last)));
     return '<p>'+out+'</p>';
   }).join("");
 }
@@ -197,7 +213,7 @@ function openReader(it){
     if(sum){
       // 来源站点多为付费墙 / 登录墙 / 反爬限制，无法镜像全文；展示已本地存档的中文摘要兜底
       body.innerHTML='<div class="r-fallback">⚠️ 该条新闻的<b>全文镜像暂不可用</b>（来源站点可能为付费墙 / 登录墙 / 反爬限制，或原文已失效）。下方为已<b>本地存档的中文摘要</b>，可正常查看；完整原文请点击右下角「查看原文 ↗」。</div>'+
-        '<p class="r-summary">'+escapeHtml(sum)+'</p>';
+        '<p class="r-summary">'+linkify(escapeHtml(sum))+'</p>';
     }else{
       body.innerHTML='<p class="r-empty">暂未获取到该条新闻的全文镜像与摘要。'+(it.url?'可点击右下角「查看原文 ↗」前往原始报道。':'')+'</p>';
     }
