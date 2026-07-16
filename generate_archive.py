@@ -447,9 +447,15 @@ _SSL_CTX.verify_mode = ssl.CERT_NONE
 _UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
        "(KHTML, like Gecko) Chrome/124.0 Safari/537.36")
 
+try:
+    import trafilatura
+    _HAVE_TRAF = True
+except Exception:
+    _HAVE_TRAF = False
+
 def fetch_content(url, cap=15000):
     """抓取原文并抽取正文（纯文本归档：不下载/不内嵌图片）。
-    返回纯文本 Markdown 正文；失败返回空串。"""
+    返回纯文本 Markdown 正文；失败返回空串。优先 trafilatura，缺失则降级正则。"""
     if not url:
         return ""
     try:
@@ -458,22 +464,26 @@ def fetch_content(url, cap=15000):
         with urllib.request.urlopen(req, timeout=15, context=_SSL_CTX) as r:
             raw = r.read(5_000_000)  # 上限 5MB，防超大页卡死
             html = raw.decode("utf-8", "ignore")
-        import trafilatura
-        res = trafilatura.extract(html, output_format="json", include_images=False, url=url)
-        text = ""
-        if res:
-            d = json.loads(res)
-            text = d.get("text") or ""
-        if not text:
-            # 降级：粗滤 script/style 后去标签
-            h2 = re.sub(r"<(script|style)[^>]*>.*?</\1>", " ", html, flags=re.S | re.I)
-            text = re.sub(r"<[^>]+>", " ", h2)
-            text = re.sub(r"\s+", " ", text).strip()
-        if not text:
-            return ""
-        return text.strip()[:cap]
     except Exception:
         return ""
+    # 优先 trafilatura 正文抽取
+    text = ""
+    if _HAVE_TRAF:
+        try:
+            res = trafilatura.extract(html, output_format="json", include_images=False, url=url)
+            if res:
+                d = json.loads(res)
+                text = d.get("text") or ""
+        except Exception:
+            text = ""
+    # 降级：粗滤 script/style 后去标签（trafilatura 缺失或抽取为空时仍可用）
+    if not text:
+        h2 = re.sub(r"<(script|style)[^>]*>.*?</\1>", " ", html, flags=re.S | re.I)
+        text = re.sub(r"<[^>]+>", " ", h2)
+        text = re.sub(r"\s+", " ", text).strip()
+    if not text:
+        return ""
+    return text.strip()[:cap]
 
 IMG_CAP = 6                      # 每篇最多下载前 6 张图
 IMG_MAX_BYTES = 2 * 1024 * 1024  # 单图上限 2MB，超出跳过（保留外链）
@@ -710,6 +720,15 @@ def truncate(s, n=60):
         return s
     return s[:n - 1] + "…"
 
+def fallback_lead(sections):
+    """当列表接口没有 leadTitle 时，用第一个非空版块的第一个条目标题兜底。"""
+    for sec in sections or []:
+        if sec.get("items"):
+            title = sec["items"][0].get("title", "")
+            if title.strip():
+                return truncate(title, 90)
+    return ""
+
 OUT_DIR = os.path.dirname(os.path.abspath(__file__))
 ARCHIVE_PATH = os.path.join(OUT_DIR, "archive.json")
 
@@ -807,7 +826,8 @@ def build_day_record(date):
         "sourceUrl": "https://aihot.virxact.com",
         "generatedAt": beijing_now().strftime("%Y年%m月%d日 %H:%M"),
     }
-    return {"meta": meta, "sections": present, "lead": lead_map.get(date, "")}
+    lead = lead_map.get(date, "") or fallback_lead(present)
+    return {"meta": meta, "sections": present, "lead": lead}
 
 new_added = 0
 today = beijing_today_str()
@@ -822,19 +842,27 @@ if not RENDER_ONLY:
             print(f"    + {date}: {arch[date]['meta']['total']} 条")
         except Exception as e:
             print(f"    ! {date} 拉取失败: {e}")
-    # 竞态兜底：若日报列表尚未包含「今天」（AI HOT 生成晚于抓取时刻），
-    # 直接按日期探测 daily 接口，确保当天日报不被漏抓（如 cron 抢跑场景）。
-    if today not in arch:
-        try:
-            probe = http_get_json(f"{BASE}/daily/{today}")
-            if probe.get("sections"):
-                arch[today] = build_day_record(today)
-                new_added += 1
-                print(f"    + {today}（直接补抓）: {arch[today]['meta']['total']} 条")
-            else:
-                print(f"    · 今天({today})日报接口暂无内容，跳过")
-        except Exception as e:
-            print(f"    ! 今天({today})补抓失败: {e}")
+    # 稳健兜底：dailies 列表接口偶发 520/限流时会漏掉「非今天」的缺失日期
+    # （例如今天已抓到 7/16、但 7/15 因列表失败而漏抓）。改为直接按日期探测
+    # daily 接口，回填「今天往前 10 天」内所有缺失日期，列表挂掉也能补齐近期缺口。
+    try:
+        base = datetime.datetime.strptime(today, "%Y-%m-%d")
+        for i in range(10):
+            gd = (base - datetime.timedelta(days=i)).strftime("%Y-%m-%d")
+            if gd in arch:
+                continue
+            try:
+                probe = http_get_json(f"{BASE}/daily/{gd}")
+                if probe.get("sections"):
+                    arch[gd] = build_day_record(gd)
+                    new_added += 1
+                    print(f"    + {gd}（缺口补抓）: {arch[gd]['meta']['total']} 条")
+                else:
+                    print(f"    · {gd} 日报接口暂无内容，跳过")
+            except Exception as e:
+                print(f"    ! {gd} 补抓失败: {e}")
+    except Exception as e:
+        print(f"    ! 缺口补抓异常: {e}")
     save_archive(arch)
     print(f"    新增 {new_added} 期；累计 {len(arch)} 期")
 
@@ -1863,7 +1891,7 @@ def render_index(days):
             "date": d["meta"]["reportDate"],
             "meta": d["meta"],
             "sections": [{"label": s["label"], "count": len(s["items"])} for s in d["sections"]],
-            "lead": d.get("lead", ""),
+            "lead": d.get("lead", "") or fallback_lead(d.get("sections", [])),
             "isToday": d["meta"]["reportDate"] == today,
         })
     newest = days[0]["meta"]["reportDateHuman"]
