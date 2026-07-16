@@ -82,10 +82,45 @@
   #ganttChart .ccname{transition:filter .12s}
   #ganttChart .ccname:hover{filter:brightness(0.82)}
   #ganttChart .gtoday{font-size:9px;font-weight:800;fill:#fff}
-  #ganttTip{position:absolute;display:none;pointer-events:none;background:#1f2430;color:#fff;
-    font-size:12px;line-height:1.55;padding:8px 10px;border-radius:10px;box-shadow:0 6px 18px rgba(16,24,40,.25);
-    z-index:5;max-width:300px}
-  #ganttTip b{font-weight:700}
+  /* Tooltip 固定深色浮层（不跟随系统深浅色，与浅色主体形成稳定对比） */
+  :root{
+    --tooltip-bg: rgba(24, 28, 38, 0.97);
+    --tooltip-text: #f8fafc;
+    --tooltip-muted: #aeb7c6;
+    --tooltip-border: rgba(255,255,255,.08);
+    --tooltip-divider: rgba(255,255,255,.08);
+  }
+  #ganttTip{position:absolute;display:none;pointer-events:none;z-index:6;
+    width:320px;max-width:360px;padding:15px 16px;
+    background:var(--tooltip-bg);color:var(--tooltip-text);
+    border:1px solid var(--tooltip-border);border-radius:14px;
+    box-shadow:0 16px 40px rgba(15,23,42,.24),0 4px 12px rgba(15,23,42,.16);
+    backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+    font-size:12px;line-height:1.5;
+    opacity:0;transform:translateY(4px) scale(.98);
+    transition:opacity .12s ease,transform .12s ease}
+  #ganttTip.show{opacity:1;transform:translateY(0) scale(1)}
+  .tt-title{font-size:15px;font-weight:700;line-height:1.45;color:#fff;margin-bottom:10px;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .tt-meta{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--tooltip-muted)}
+  .tt-badge{padding:3px 8px;border-radius:999px;font-size:11px;font-weight:700}
+  .tt-badge.tt-blue{color:#818cf8;background:rgba(99,102,241,.15)}
+  .tt-badge.tt-green{color:#34d399;background:rgba(16,185,129,.15)}
+  .tt-badge.tt-red{color:#f87171;background:rgba(240,82,82,.15)}
+  .tt-date{color:var(--tooltip-muted)}
+  .tt-company{display:flex;align-items:center;gap:7px;margin-top:12px;padding-top:11px;
+    border-top:1px solid var(--tooltip-divider);font-size:13px}
+  .tt-logo{width:18px;height:18px;object-fit:contain;flex:0 0 auto;display:block}
+  .tt-cname{font-weight:800}
+  .tt-sep{color:var(--tooltip-muted);margin:0 3px}
+  .tt-mname{color:var(--tooltip-text);font-weight:600}
+  .tt-rating{margin-left:auto;font-weight:800;font-size:13px}
+  .tt-caps{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}
+  .tt-cap{padding:2px 7px;border-radius:6px;color:#cbd5e1;background:rgba(148,163,184,.12);
+    font-size:11px;border:1px solid transparent}
+  .tt-cap.tt-cap-main{background:rgba(148,163,184,.06)}
+  .tt-source{margin-top:9px;color:var(--tooltip-muted);font-size:11.5px}
+  .tt-action{margin-top:10px;font-size:12px;font-weight:600}
   .year-h{font-size:26px;font-weight:800;margin:30px 0 4px;color:#1f2430;letter-spacing:.5px}
   .idx-head{margin:26px 0 2px}
   .idx-head h2{margin:0;font-size:22px;font-weight:800}
@@ -178,7 +213,7 @@
     <div id="archive"></div>
   </main>
   <footer>
-    <div>数据来源：<a href="https://aihot.virxact.com" target="_blank" rel="noopener noreferrer">AI HOT（aihot.virxact.com）</a> · 生成于 2026年07月17日 03:19</div>
+    <div>数据来源：<a href="https://aihot.virxact.com" target="_blank" rel="noopener noreferrer">AI HOT（aihot.virxact.com）</a> · 生成于 2026年07月17日 03:27</div>
     <div style="margin-top:6px">点击任意一期查看当日完整日报（含五版块与原文跳转）</div>
     <div style="margin-top:8px;opacity:.85">说明：本页已把每条新闻的标题、摘要、来源、日期<b>镜像保存到本地</b>；外部「原文」链接仅作溯源，即使链接失效或无法访问境外站点，已存档内容仍可正常查看。</div>
   </footer>
@@ -362,13 +397,11 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
   function bandLabelAtUnits(u){ u=Math.max(0,Math.min(totalUnits,u));
     for(let i=BANDS.length-1;i>=0;i--){ if(u>=cumBeforeB[BANDS[i].label]) return BANDS[i].label; } return BANDS[0].label; }
   const kindColor={model:"#4f46e5",product:"#059669"};
-  const BLUE="#4f46e5", GREEN="#059669", MAJOR="#ef4444";   // 蓝=大版本 绿=子版本 红=里程碑
-  const MILESTONE_FAMS=new Set(["GPT","Gemini","Claude","Llama","DeepSeek 系列","Grok","Seedance"]);
-  // 版本层级：从标题解析首个版本号，x.y（y≠0）视为子版本→绿，整数或 x.0 视为大版本→蓝/红
+  const BLUE="#4f46e5", GREEN="#059669", MAJOR="#ef4444";   // 蓝=模型发布 绿=版本更新 红=里程碑发布
+  // 版本层级：从标题解析首个版本号，x.y（y≠0）视为子版本→绿，整数或 x.0 视为大版本
   function versionTier(title){ const m=String(title||"").match(/(\d+)(?:\.(\d+))?/); if(!m) return "major"; const minor=m[2]?parseInt(m[2],10):0; return minor!==0?"minor":"major"; }
-  // 事件颜色分类（与图例一致）：green=子版本 / red=里程碑 / blue=大版本
-  function eventColorKey(e,m){ const tier=versionTier(e.title);
-    if(tier==="minor") return "green"; return MILESTONE_FAMS.has(m.name) ? "red" : "blue"; }
+  // 事件类型（与图例一致、与 Tooltip 徽章一致）：red=里程碑发布(major) / green=版本更新(子版本) / blue=模型发布
+  function eventColorKey(e,m){ if(e.major) return "red"; if(versionTier(e.title)==="minor") return "green"; return "blue"; }
   const LEGEND_COLOR={blue:"#4f46e5",green:"#059669",red:"#ef4444"};
   let legendFilter=null;    // null=全部；"blue"/"green"/"red"=仅显示该图例对应事件与所在模型行
   let capFilter=null;       // null=全部；能力 key（如 "Chat"）= 仅显示具备该能力的模型
@@ -377,6 +410,7 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
   let markerMode="block";   // block（方块）| dot（圆点）| bar（竖条）
   let majorOnly=true;       // 常开：过滤次要模型微调（无切换按钮，时间线仅保留重要事件）
   const tip=document.getElementById("ganttTip");
+  const MODEL_CAPS={};   // 公司|模型 → 能力列表（供 Tooltip 渲染中性灰胶囊，避免重复进 data-j）
   const rangeLabel=document.getElementById("ganttRange");
   const stickyYears=document.getElementById("ganttStickyYears");
   const stickyYearsSvg=document.getElementById("ganttYearsSvg");
@@ -480,6 +514,7 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
         y+=compH;
       } else {
         const m=r.m, y0=y;
+        MODEL_CAPS[m.company+"|"+m.name]=m.caps;   // 缓存模型能力，供 Tooltip 使用
         if(capActive && !modelShown[m.company+"|"+m.name]) return;
         h+=`<rect class="grow" style="--mc:${m.color}" x="0" y="${y0.toFixed(1)}" width="${W}" height="${rowH}" fill="#ffffff"/>`;
         const vis=visibleEvents(m);
@@ -581,9 +616,10 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
         let x = xAt(new Date(e.date+"T00:00:00Z").getTime());
         if(x<L-8 || x>W-R+8) return;               // 视野外跳过
         const tier = versionTier(e.title);
-        const col = tier==="minor" ? GREEN : (MILESTONE_FAMS.has(m.name) ? MAJOR : BLUE);
+        const typeKey = e.major ? "red" : (tier==="minor" ? "green" : "blue");
+        const col = typeKey==="green" ? GREEN : (typeKey==="red" ? MAJOR : BLUE);
         const j=JSON.stringify({t:e.title,d:e.date,k:e.kind,s:e.source,f:e.file,
-          comp:m.company, mcap:m.main_cap, melo:(m.rating==null?'—':m.rating), mreg:m.region, mcol:m.color, major:!!e.major})
+          comp:m.company, mn:m.name, mcap:m.main_cap, rating:m.rating, mreg:m.region, mcol:m.color, major:!!e.major})
           .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
         if(markerMode==="dot"){
           h+=`<g class="gev" data-j="${j}" style="cursor:pointer">`+
@@ -641,37 +677,61 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
       stickyYearsSvg.innerHTML=yh;
     }
     if(rangeLabel) rangeLabel.textContent=`可见 ${bandLabelAtUnits(viewStart)} – ${bandLabelAtUnits(viewStart+viewUnits)} · 约 ${(viewUnits/totalUnits*numYears).toFixed(1)} 年（按内容量分配列宽）`;
+    // ── Tooltip：事件卡（非模型档案卡）─────────────────────────────────
+    const TYPE_LABEL={blue:"模型发布",green:"版本更新",red:"里程碑发布"};
+    const escAttr = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    function tipLogo(comp){
+      const L2=COMPANY_LOGO[comp]; if(!L2) return "";
+      if(L2.kind==="png") return `<img class="tt-logo" src="${L2.data}" alt="">`;
+      return `<svg class="tt-logo" viewBox="0 0 24 24" preserveAspectRatio="xMidYMid meet">${L2.svg}</svg>`;
+    }
+    function eventTypeOf(j){ if(j.major) return "red"; if(versionTier(j.t)==="minor") return "green"; return "blue"; }
+    function positionTip(ev){
+      const rect=svg.getBoundingClientRect();
+      let tx=ev.clientX-rect.left+14, ty=ev.clientY-rect.top+14;
+      const tw=tip.offsetWidth||320, th=tip.offsetHeight||120;
+      if(tx+tw > rect.width-4) tx = ev.clientX-rect.left - tw - 14;   // 近右缘→翻到左侧
+      if(tx < 4) tx = 4;
+      if(ty+th > rect.height-4) ty = ev.clientY-rect.top - th - 14;  // 近底部→翻到上方
+      if(ty < 4) ty = 4;
+      tip.style.left=tx+"px"; tip.style.top=ty+"px";
+    }
     svg.querySelectorAll(".gev").forEach(g=>{
       const j=JSON.parse(g.getAttribute("data-j"));
-      g.addEventListener("mouseenter",()=>{
+      g.addEventListener("mouseenter",ev=>{
         if(dragging) return;
-        const capLbl=(G.caps_defs||[]).find(c=>c.key===j.mcap);
-        const capTxt = capLbl ? (capLbl.emoji+" "+capLbl.label) : (j.mcap||"—");
-        const regLbl = REGION_LABEL[j.mreg]||j.mreg||"—";
-        const kindLbl = (kindText[j.k]||j.k) + (j.major?' · 🔴重大更新':'');
-        tip.innerHTML=
-          `<div style="font-weight:700;margin-bottom:3px">${escapeHtml(j.t)}</div>`+
-          `<div style="opacity:.82">${kindLbl} · 📅 ${j.d}</div>`+
-          `<div style="opacity:.82;margin-top:2px">来源：${escapeHtml(j.s)}</div>`+
-          `<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px 12px;font-size:11.5px">`+
-            `<span>🌐 ${escapeHtml(regLbl)}</span>`+
-            `<span style="color:${j.mcol};font-weight:700">🏢 ${escapeHtml(j.comp)}</span>`+
-            `<span>🎯 ${escapeHtml(capTxt)}</span>`+
-            `<span style="color:${j.mcol};font-weight:700">📊 Arena Elo ${j.melo==='—'?'—':j.melo}</span>`+
+        const typeKey=eventTypeOf(j);
+        const hasRating=(j.rating!=null);
+        const caps=(MODEL_CAPS[j.comp+"|"+j.mn]||[]).slice().sort((a,b)=>
+          (CAP_ORDER.indexOf(a)>=0?CAP_ORDER.indexOf(a):99)-(CAP_ORDER.indexOf(b)>=0?CAP_ORDER.indexOf(b):99));
+        let capHtml="";
+        caps.forEach(cap=>{
+          const cd=CAP_MAP[cap]||{label:cap};
+          const main=(cap===j.mcap);
+          capHtml+=`<span class="tt-cap${main?' tt-cap-main':''}"${main?` style="border-color:${j.mcol}"`:''}>${escapeHtml(cd.label)}</span>`;
+        });
+        const src=j.s ? j.s : "待核验";
+        let html=
+          `<div class="tt-title" title="${escAttr(j.t)}">${escapeHtml(j.t)}</div>`+
+          `<div class="tt-meta"><span class="tt-badge tt-${typeKey}">${TYPE_LABEL[typeKey]}</span><span class="tt-date">${escapeHtml(j.d)}</span></div>`+
+          `<div class="tt-company">${tipLogo(j.comp)}`+
+            `<span class="tt-cname" style="color:${j.mcol}">${escapeHtml(j.comp)}</span>`+
+            `<span class="tt-sep">·</span><span class="tt-mname">${escapeHtml(j.mn)}</span>`+
+            (hasRating?`<span class="tt-rating" style="color:${j.mcol}">Arena ${j.rating}</span>`:"")+
           `</div>`+
-          `<div style="margin-top:5px;color:#9aa1b1">点击查看当日日报 →</div>`;
+          (capHtml?`<div class="tt-caps">${capHtml}</div>`:"")+
+          `<div class="tt-source">来源：${escapeHtml(src)}</div>`;
+        if(j.f) html+=`<div class="tt-action" style="color:${j.mcol}">查看当日日报 →</div>`;
+        tip.innerHTML=html;
         tip.style.display="block";
+        requestAnimationFrame(()=>tip.classList.add("show"));
+        positionTip(ev);
       });
       g.addEventListener("mousemove",ev=>{
         if(dragging) return;
-        const rect=svg.getBoundingClientRect();
-        let tx=ev.clientX-rect.left+14, ty=ev.clientY-rect.top+14;
-        const tw=tip.offsetWidth, th=tip.offsetHeight;
-        if(tx+tw>rect.width) tx=ev.clientX-rect.left-tw-14;
-        if(ty+th>rect.height) ty=ev.clientY-rect.top-th-14;
-        tip.style.left=tx+"px"; tip.style.top=ty+"px";
+        positionTip(ev);
       });
-      g.addEventListener("mouseleave",()=>{tip.style.display="none";});
+      g.addEventListener("mouseleave",()=>{ tip.classList.remove("show"); tip.style.display="none"; });
       g.addEventListener("click",()=>{ if(moved) return; if(j.f) window.open(j.f,"_blank","noopener"); });
     });
   }
@@ -692,7 +752,7 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
 
   // 拖动（平移时间轴）
   let dragging=false, lastX=0, moved=false;
-  svg.addEventListener("mousedown",e=>{ dragging=true; moved=false; lastX=e.clientX; tip.style.display="none"; });
+  svg.addEventListener("mousedown",e=>{ dragging=true; moved=false; lastX=e.clientX; tip.classList.remove("show"); tip.style.display="none"; });
   window.addEventListener("mouseup",()=>{ dragging=false; });
   svg.addEventListener("mousemove",e=>{
     if(!dragging) return;
@@ -702,7 +762,7 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
     const dxUnits = dxPx*(rect.width/W)/plotW*viewUnits;
     viewStart -= dxUnits; clampView(); render();
   });
-  svg.addEventListener("mouseleave",()=>{ if(!dragging) tip.style.display="none"; });
+  svg.addEventListener("mouseleave",()=>{ if(!dragging){ tip.classList.remove("show"); tip.style.display="none"; } });
 
   // 年份浮层：滚动时主 SVG 年份标签消失 → 浮层自动出现；滚回顶部或离开图表 → 自动隐藏
   function updateStickyYears(){
