@@ -15,7 +15,8 @@ from concurrent.futures import TimeoutError as _FTimeout
 
 # 运行模式：--render-only 仅用本地归档重渲染（跳过抓取/回填/翻译，最快出页面）；
 #           --no-translate 跳过英文→中文翻译；--no-backfill 跳过头像/图片本地化回填
-RENDER_ONLY = "--render-only" in sys.argv
+RENDER_ONLY = ("--render-only" in sys.argv) or ("--tidy" in sys.argv)
+TIDY_MODE = "--tidy" in sys.argv
 NO_TRANSLATE = "--no-translate" in sys.argv
 NO_BACKFILL = "--no-backfill" in sys.argv
 
@@ -722,11 +723,10 @@ MILESTONES = [
 GANTT_TOP_N = 12  # 时间线甘特图展示事件数最多的 N 家公司
 
 # 甘特时间线「年份分组」：用于合并稀疏年份、压缩空年份。
-# 2021 不单列；2020/2021/2022 合并为前置区间「2022年前」，避免与「2023」标签拥挤；其余年份独立成列。
+# 2021 不单列；2020/2021/2022/2023 合并为前置区间「2023年前」，避免与「2024」标签拥挤；其余年份独立成列。
 # 每个元素：(显示标签, 起始年, 结束年)。2021 计入该区间但不单独出现。
 GANTT_YEAR_BANDS = [
-    ("2022年前", 2020, 2022),
-    ("2023", 2023, 2023),
+    ("2023年前", 2020, 2023),
     ("2024", 2024, 2024),
     ("2025", 2025, 2025),
     ("2026", 2026, 2026),
@@ -1043,9 +1043,11 @@ def translate_deepseek_text(text, key):
                 {"role": "system", "content":
                  "You are a professional Chinese translator for AI and technology news. "
                  "Translate the user's English text into fluent Simplified Chinese. "
-                 "Keep all brand names, model names, product names, technical terms, code, "
-                 "URLs, and numbers exactly as in the original. Preserve paragraph breaks. "
-                 "Output only the translated text, with no extra commentary."},
+                 "Use standard Chinese punctuation (，。！？；：、""''（）etc.), keep paragraphs "
+                 "clear with single blank lines between them, and avoid extra blank lines or "
+                 "trailing spaces. Keep all brand names, model names, product names, technical "
+                 "terms, code, URLs, and numbers exactly as in the original. Preserve paragraph "
+                 "breaks. Output only the translated text, with no extra commentary."},
                 {"role": "user", "content": ch}
             ],
             "temperature": 0.3,
@@ -1069,6 +1071,48 @@ def translate_deepseek_text(text, key):
             out_parts.append(ch)  # 全失败保留原文该段，避免丢内容
     return "\n\n".join(out_parts).strip()
 
+def tidy_zh_content(s):
+    """翻译后中文正文排版整理（符合中文阅读习惯，幂等安全）：
+    - 统一换行符；按空行分段
+    - 段内：列表项(-/*/•/数字序号)保留换行，其余连续句合并为紧凑段落(空格连接)
+    - 去除段首/行尾空白、合并行内连续空格
+    - 不改变标点（中文标点由翻译 prompt 直接产出，避免误伤版本号/URL/代码）"""
+    if not s:
+        return s
+    s = s.replace("\r\n", "\n").replace("\r", "\n")
+    paras = re.split(r"\n[ \t]*\n", s)
+    out = []
+    for p in paras:
+        lines = [ln.strip() for ln in p.split("\n")]
+        lines = [ln for ln in lines if ln]
+        if not lines:
+            continue
+        buf, cur = [], ""
+        for ln in lines:
+            if re.match(r"^([-*•]|\d+[.、])\s", ln):
+                if cur:
+                    buf.append(cur); cur = ""
+                buf.append(ln)
+            else:
+                cur = (cur + " " + ln) if cur else ln
+        if cur:
+            buf.append(cur)
+        out.append("\n".join(buf))
+    return "\n\n".join(out).strip()
+
+def tidy_all(arch):
+    """对全部已译(zh=True)正文做排版整理（幂等）；返回发生变化条数。"""
+    n = 0
+    for d, rec in arch.items():
+        for s in rec.get("sections", []):
+            for it in s.get("items", []):
+                if it.get("zh") and (it.get("content") or "").strip():
+                    t = tidy_zh_content(it["content"])
+                    if t != it["content"]:
+                        it["content"] = t
+                        n += 1
+    return n
+
 def _translate_item(it, ds_key=None):
     c = it.get("content") or ""
     if len(c) < 120:
@@ -1082,7 +1126,7 @@ def _translate_item(it, ds_key=None):
         new = translate_deepseek_text(c, ds_key)
         # 接受条件：非空 且 含中文 且 与原文不同（确为翻译，而非端点原样返回）
         if new and new != c and any('\u4e00' <= ch <= '\u9fff' for ch in new):
-            it["content"] = new
+            it["content"] = tidy_zh_content(new)   # 排版整理：分段/去空行/合并软换行
             it["zh"] = True
         else:
             it["zh"] = False
@@ -1315,6 +1359,14 @@ if not RENDER_ONLY and not NO_BACKFILL:
 # ---------- 3.6 英文全文→中文翻译（保留专有名词；断点续传，硬预算防卡死） ----------
 if not RENDER_ONLY and not NO_TRANSLATE:
     translate_archive(arch)
+
+# ---------- 3.7 中文正文排版整理（幂等：翻译后统一整理，符合阅读习惯） ----------
+# 对所有已译(zh=True)正文执行 tidy_zh_content：去多余空行/行尾空格、合并软换行、
+# 列表项保留。任何模式（含 --render-only / --tidy）均生效，保证渲染产出整洁。
+n_tidy = tidy_all(arch)
+if n_tidy:
+    save_archive(arch)
+    print(f"[3.7] 中文正文排版整理 {n_tidy} 条")
 
 # ---------- 4. 渲染每份日报（仅写缺失/新文件，不重写旧档） ----------
 DAY_TPL = r"""<!DOCTYPE html>
@@ -1592,11 +1644,12 @@ INDEX_TPL = r"""<!DOCTYPE html>
   .trend-sub{margin:0;font-size:13px;color:var(--muted)}
   .chart-wrap{position:relative;background:var(--card);border:1px solid var(--line);border-radius:16px;
     overflow:hidden;box-shadow:0 1px 3px rgba(16,24,40,.04)}
-  .gantt-sticky-years{position:fixed;top:0;left:0;right:0;z-index:15;display:none;
-    background:#fff;border-bottom:1px solid var(--line);box-shadow:0 2px 10px rgba(16,24,40,.07)}
+  .gantt-sticky-years{position:fixed;top:0;left:0;right:0;z-index:15;display:none;background:transparent}
   .gantt-sticky-inner{max-width:1180px;margin:0 auto;padding:0 18px}
-  .gantt-sticky-inner svg{width:100%;display:block}
-    padding:14px 14px 6px;box-shadow:var(--shadow)}
+  .gantt-sticky-card{background:#fff;border:1px solid var(--line);border-top:none;
+    border-radius:0 0 16px 16px;overflow:hidden;box-shadow:0 2px 10px rgba(16,24,40,.07);
+    padding:8px 0 4px}
+  .gantt-sticky-card svg{width:100%;display:block}
   .gantt{margin:30px 0 6px}
   .gantt-ctrl{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
   .gbtn{font-size:13px;font-weight:600;color:#4b5161;border:1px solid var(--line);background:#fff;
@@ -1748,7 +1801,9 @@ INDEX_TPL = r"""<!DOCTYPE html>
     </div>
     <div id="ganttStickyYears" class="gantt-sticky-years">
       <div class="gantt-sticky-inner">
-        <svg id="ganttYearsSvg"></svg>
+        <div class="gantt-sticky-card">
+          <svg id="ganttYearsSvg"></svg>
+        </div>
       </div>
     </div>
     <div class="chart-wrap">
@@ -1901,8 +1956,8 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
   const maxYear=new Date(full1).getUTCFullYear();
   const numYears=Math.max(1,maxYear-minYear+1);
   // 时间轴采用「内容加权列宽」：每个年份分组占用的像素宽度 ∝ 组内事件数 + 基准权重，
-  // 稀疏分组（如 2022年前 仅 2 次）被压缩成细条，密集分组（如 2026 有数百次）获得更多空间。
-  // 年份分组由 GANTT_BANDS 指定：2021 不单列；2020/2021/2022 合并为「2022年前」。
+  // 稀疏分组（如 2023年前 仅 2 次）被压缩成细条，密集分组（如 2026 有数百次）获得更多空间。
+  // 年份分组由 GANTT_BANDS 指定：2021 不单列；2020/2021/2022/2023 合并为「2023年前」。
   const RATE_BASE=12;  // 每个分组最小内容权重，保证稀疏分组仍有可见细条与标签
   const yearCounts={};
   G.regions.forEach(reg=> reg.models.forEach(m=> m.events.forEach(e=>{
@@ -1922,7 +1977,7 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
     if(i===BANDS.length-1) w = cnt*RECENT_BOOST + RATE_BASE;   // 最新分组（如 2026）占满轨道，点分散展开
     bandUnits[b.label]=w; totalUnits+=w;
   });
-  // 前置分组（如「2022年前」）标签较长，强制最小像素宽度，避免其标签与下一分组（如「2023」）标签重叠；
+  // 前置分组（如「2023年前」）标签较长，强制最小像素宽度，避免其标签与下一分组（如「2024」）标签重叠；
   // 多出的权重从最末（最新）分组扣除，整体占比几乎不变。
   const MIN_FIRST_BW=66;
   if(BANDS.length>1){
@@ -2124,7 +2179,7 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
       if(x0>=L-1) h+=`<line x1="${x0.toFixed(1)}" y1="${T}" x2="${x0.toFixed(1)}" y2="${plotBottom.toFixed(1)}" stroke="#e3e6ee"/>`;
       const wpx=x1-x0;
       if(wpx>10){                                  // 列足够宽才显示标签，避免拥挤
-        const fs = 11;                             // 所有年份标签统一字号（含「2022年前」），与后续年份一致
+        const fs = 11;                             // 所有年份标签统一字号（含「2023年前」），与后续年份一致
         const anchor = (i===0) ? "start" : "middle";   // 前置长标签左对齐，避免越界压到下一分组
         const xc = (i===0) ? (x0+3) : (x0+x1)/2;
         h+=`<text x="${xc.toFixed(1)}" y="${(T-4).toFixed(1)}" text-anchor="${anchor}" font-size="${fs}" font-weight="800" fill="#6b7280">${b.label}</text>`;
