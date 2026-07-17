@@ -832,7 +832,7 @@ def fetch_content(url, cap=15000):
         text = re.sub(r"\s+", " ", text).strip()
     if not text:
         return ""
-    return text.strip()[:cap]
+    return clean_menu_noise(text).strip()[:cap]
 
 IMG_CAP = 6                      # 每篇最多下载前 6 张图
 IMG_MAX_BYTES = 2 * 1024 * 1024  # 单图上限 2MB，超出跳过（保留外链）
@@ -1071,6 +1071,62 @@ def translate_deepseek_text(text, key):
             out_parts.append(ch)  # 全失败保留原文该段，避免丢内容
     return "\n\n".join(out_parts).strip()
 
+# ---------- 菜单噪声过滤（站点 chrome：导航/页脚/社交/订阅；保留正文，幂等） ----------
+# 仅删除【高置信度】的短行 chrome（导航菜单/版权/cookie/广告声明/社交关注矩阵/分隔符密集行），
+# 绝不删除长正文；超长行(>200字)一律保留，避免误伤真实内容。中英文站点均适用。
+_MENU_COPYRIGHT = re.compile(
+    r'(版权信息|copyright|all rights reserved|保留所有权利|隐私政策|使用条款|'
+    r'广告声明|相关阅读|推荐阅读|猜你喜欢|扫码关注|订阅我们|cookie|©|ⓒ|'
+    r'网站地图|法律声明|免责声明|robots\.txt)', re.I)
+_MENU_SOCIAL = re.compile(
+    r'(twitter|facebook|discord|reddit|instagram|linkedin|youtube|'
+    r'telegram|weibo|wechat|tiktok|pinterest)', re.I)
+_MENU_FOLLOW = re.compile(
+    r'(follow us|share (this|on)|find us on|subscribe to|connect with|scan to|扫码)', re.I)
+_MENU_NAV = re.compile(
+    r'(首页|新闻|关于|联系|搜索|产品|解决方案|文档|教程|社区|活动|案例|定价|'
+    r'帮助|支持|栏目|频道|专题|排行|热门|最新|推荐|博客|资讯|菜单|服务|资源|'
+    r'合作伙伴|招聘|法律|反馈|网站地图)')
+
+def clean_menu_noise(text):
+    """剥离站点 chrome 噪声，仅删高置信度短行 chrome，保留正文。幂等。"""
+    if not text:
+        return text
+    lines = text.split("\n")
+
+    def _chrome(line):
+        s = line.strip()
+        if not s:
+            return True
+        if len(s) > 200:
+            return False                      # 保护：超长行绝不删
+        if _MENU_COPYRIGHT.search(s):
+            return True                       # A. footer/版权/广告/cookie
+        has_cjk = bool(re.search(r'[一-鿿]', s))
+        socs = set(m.group(1).lower() for m in _MENU_SOCIAL.finditer(s))
+        if len(socs) >= 3 and not has_cjk:
+            return True                       # B1. 纯英文社交矩阵 footer
+        if _MENU_FOLLOW.search(s) and socs and not has_cjk:
+            return True                       # B2. 纯英文关注条
+        navc = len(_MENU_NAV.findall(s))
+        if navc >= 4 and not re.search(r'[。？！.!?]', s):
+            return True                       # C. 栏目导航行
+        sep = s.count('|') + s.count('→') + s.count('/') + s.count('·') + s.count('›') + s.count('»')
+        if sep >= 5 and not re.search(r'[。？！.!?]', s):
+            return True                       # D. 分隔符密集行
+        return False
+
+    i = 0
+    while i < len(lines) and _chrome(lines[i]):
+        i += 1
+    j = len(lines) - 1
+    while j >= i and _chrome(lines[j]):
+        j -= 1
+    t = "\n".join(lines[i:j + 1])
+    t = re.sub(r"\n{3,}", "\n\n", t).strip()
+    return t
+
+
 def tidy_zh_content(s):
     """翻译后中文正文排版整理（符合中文阅读习惯，幂等安全）：
     - 统一换行符；按空行分段
@@ -1079,6 +1135,7 @@ def tidy_zh_content(s):
     - 不改变标点（中文标点由翻译 prompt 直接产出，避免误伤版本号/URL/代码）"""
     if not s:
         return s
+    s = clean_menu_noise(s)                   # 先剥离站点导航/页脚/社交菜单噪声
     s = s.replace("\r\n", "\n").replace("\r", "\n")
     paras = re.split(r"\n[ \t]*\n", s)
     out = []
