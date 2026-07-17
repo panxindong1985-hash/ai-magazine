@@ -166,12 +166,12 @@
     {
       "company": "字节",
       "official_website": "https://bytedance.com",
-      "logo_source_url": "https://simpleicons.org/?q=bytedance",
-      "source_type": "simple_icons",
+      "logo_source_url": "https://bytedance.com / 用户品牌截图",
+      "source_type": "custom_multicolor",
       "local_file": "assets/brands/bytedance.svg",
       "verified": true,
       "last_checked": "2026-07-17",
-      "notes": "Simple Icons 官方单色向量"
+      "notes": "字节跳动集团官方彩色声波 logo（蓝#3C8CFF / 青#22D3EE / 绿#34D399），基于用户提供官方品牌截图重绘；不再使用 Simple Icons 红色抖音音符"
     },
     {
       "company": "稀宇科技",
