@@ -156,12 +156,12 @@
     {
       "company": "腾讯",
       "official_website": "https://tencent.com",
-      "logo_source_url": "https://www.tencent.com/favicon.ico",
+      "logo_source_url": "https://www.tencent.net.cn/zh-cn/newsroom/media-resources/logos/ (safari-pinned-tab.svg)",
       "source_type": "official_favicon",
-      "local_file": "assets/brands/tencent.png",
+      "local_file": "assets/brands/tencent.svg",
       "verified": true,
       "last_checked": "2026-07-17",
-      "notes": "腾讯官网 favicon（蓝色 t-箭头 品牌图标），透明背景；公司主标识为腾讯蓝中英字标（#0052D9），图标部分采用官网核心元素"
+      "notes": "腾讯官方企业 Tencent Icon 图形标（safari-pinned-tab.svg 矢量），按规范浅色主题应用官方蓝 #0052D9（与官方 favicon 实测值一致）；非微信/QQ/云/混元/视频等业务线 Logo"
     },
     {
       "company": "字节",
@@ -320,8 +320,8 @@
     "official_github": 1,
     "simple_icons": 12,
     "fallback": 0,
-    "png": 14,
-    "svg": 17,
+    "png": 13,
+    "svg": 18,
     "real_logo_coverage": "31/31 (100.0%)"
   }
 }
