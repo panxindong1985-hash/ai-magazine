@@ -156,12 +156,12 @@
     {
       "company": "腾讯",
       "official_website": "https://tencent.com",
-      "logo_source_url": "https://simpleicons.org/?q=tencentqq",
-      "source_type": "simple_icons",
-      "local_file": "assets/brands/tencentqq.svg",
+      "logo_source_url": "https://www.tencent.com/favicon.ico",
+      "source_type": "official_favicon",
+      "local_file": "assets/brands/tencent.png",
       "verified": true,
       "last_checked": "2026-07-17",
-      "notes": "Simple Icons 官方单色向量"
+      "notes": "腾讯官网 favicon（蓝色 t-箭头 品牌图标），透明背景；公司主标识为腾讯蓝中英字标（#0052D9），图标部分采用官网核心元素"
     },
     {
       "company": "字节",
@@ -316,12 +316,12 @@
   ],
   "stats": {
     "total": 31,
-    "official_favicon": 12,
+    "official_favicon": 13,
     "official_github": 1,
-    "simple_icons": 18,
+    "simple_icons": 12,
     "fallback": 0,
-    "png": 13,
-    "svg": 18,
+    "png": 14,
+    "svg": 17,
     "real_logo_coverage": "31/31 (100.0%)"
   }
 }

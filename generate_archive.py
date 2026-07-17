@@ -2483,7 +2483,7 @@ _BRAND_FILES = {
     "深度求索": ("deepseek", False, "svg"),
     "百度": ("baidu", False, "svg"),
     "阿里": ("alibabacloud", False, "svg"),
-    "腾讯": ("tencentqq", False, "svg"),
+    "腾讯": ("tencent", False, "png"),
     "字节": ("bytedance", False, "svg"),
     "稀宇科技": ("minimax", False, "svg"),
     "Mistral": ("mistralai", False, "svg"),
