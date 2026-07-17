@@ -6,12 +6,12 @@
     {
       "company": "OpenAI",
       "official_website": "https://openai.com",
-      "logo_source_url": "https://simpleicons.org/?q=openai",
-      "source_type": "simple_icons",
+      "logo_source_url": "https://openai.com/",
+      "source_type": "official_website",
       "local_file": "assets/brands/openai.svg",
       "verified": true,
       "last_checked": "2026-07-17",
-      "notes": "Simple Icons 官方单色向量，源自 OpenAI 品牌标志"
+      "notes": "官网首页 logo 使用 fill=currentColor，浅色背景下呈现黑色；商标图形按官网黑色 #111111 渲染"
     },
     {
       "company": "Anthropic",
@@ -66,12 +66,12 @@
     {
       "company": "Amazon",
       "official_website": "https://amazon.com",
-      "logo_source_url": "https://simpleicons.org/?q=amazon",
-      "source_type": "simple_icons",
+      "logo_source_url": "https://commons.wikimedia.org/wiki/File:Amazon_icon.svg",
+      "source_type": "wikimedia_commons",
       "local_file": "assets/brands/amazon.svg",
       "verified": true,
       "last_checked": "2026-07-17",
-      "notes": "Simple Icons 官方单色向量；宽字标"
+      "notes": "官方 Amazon 图标：黑色小写 a + 橙色微笑箭头 #ff9900，真实原色"
     },
     {
       "company": "NVIDIA",
