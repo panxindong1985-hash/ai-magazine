@@ -191,7 +191,7 @@
       "local_file": "assets/brands/midjourney.png",
       "verified": true,
       "last_checked": "2026-07-17",
-      "notes": "官方 favicon（通过 Google favicon 服务获取），透明背景"
+      "notes": "官方 favicon（通过 Google favicon 服务获取），透明背景；黑白单色品牌（船标为黑），强调色对齐官网黑 #111111"
     },
     {
       "company": "Runway",
@@ -201,7 +201,7 @@
       "local_file": "assets/brands/runway.png",
       "verified": true,
       "last_checked": "2026-07-17",
-      "notes": "官方 favicon，透明背景"
+      "notes": "官方 favicon，透明背景；招牌柠檬绿/电光蓝，强调色对齐电光蓝 #4892DB（白底可读）"
     },
     {
       "company": "StepFun 阶跃",
@@ -211,7 +211,7 @@
       "local_file": "assets/brands/stepfun.png",
       "verified": true,
       "last_checked": "2026-07-17",
-      "notes": "官方 favicon，透明背景"
+      "notes": "官方 favicon，透明背景；官网品牌蓝 #005AFF，强调色已对齐"
     },
     {
       "company": "Black Forest Labs",
@@ -221,7 +221,7 @@
       "local_file": "assets/brands/blackforest.png",
       "verified": true,
       "last_checked": "2026-07-17",
-      "notes": "官方 favicon，透明背景"
+      "notes": "官方 favicon，透明背景；官方规范 logo 仅用黑/白，强调色对齐 #111111（数据里以 FLUX 名义渲染）"
     },
     {
       "company": "百川",
@@ -241,7 +241,7 @@
       "local_file": "assets/brands/thinking.png",
       "verified": true,
       "last_checked": "2026-07-17",
-      "notes": "官方 favicon，透明背景"
+      "notes": "官方 favicon，透明背景；官网 logo 橙→黄渐变，强调色对齐橙黄 #F59E0B"
     },
     {
       "company": "讯飞星火",
@@ -261,7 +261,7 @@
       "local_file": "assets/brands/luma.png",
       "verified": true,
       "last_checked": "2026-07-17",
-      "notes": "官方 favicon，透明背景"
+      "notes": "官方 favicon，透明背景；官网单色 dark 风、禁用高饱和色，强调色对齐黑 #111111"
     },
     {
       "company": "Cartesia",
@@ -271,7 +271,7 @@
       "local_file": "assets/brands/cartesia.png",
       "verified": true,
       "last_checked": "2026-07-17",
-      "notes": "官方 favicon，透明背景"
+      "notes": "官方 favicon，透明背景；官网签名自然深绿 #1B7A3D，强调色已对齐"
     },
     {
       "company": "Shengshu 生数",

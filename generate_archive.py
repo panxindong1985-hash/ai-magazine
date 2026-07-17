@@ -41,15 +41,15 @@ BRAND_CONFIG = {
     # 美国（颜色 = 各公司官方真实品牌色；允许撞色，不再为"唯一不重复"而编造）
     "OpenAI": "#111111", "Anthropic": "#C15F3C", "Google": "#4285f4", "Meta": "#0866ff",
     "Microsoft": "#0078D4", "xAI": "#111827", "NVIDIA": "#76b900", "Amazon": "#ff9900",
-    "Apple": "#555555", "Mistral": "#ff7000", "Thinking Machines": "#6d28d9",
+    "Apple": "#555555", "Mistral": "#ff7000", "Thinking Machines": "#F59E0B",
     # 中国（颜色 = 官网/主流产品真实品牌色）
     "深度求索": "#4D6BF2", "百度": "#2932e1", "阿里": "#ff6a00", "腾讯": "#0052D9",
     "字节": "#3C8CFF", "智谱": "#0ea5e9", "月之暗面": "#111111", "百川": "#1F6FEB",
     "讯飞星火": "#1A8CFF", "稀宇科技": "#111111",
     # V4 新增模型公司（颜色取各自官方/代表真实色，允许撞色）
-    "Midjourney": "#ff4d4d", "Black Forest Labs": "#ec4899", "Ideogram": "#6366f1",
-    "Kuaishou 快手": "#FF6600", "Shengshu 生数": "#22d3ee", "Runway": "#14b8a6",
-    "Luma": "#a855f7", "ElevenLabs": "#0f172a", "Cartesia": "#f97316", "StepFun 阶跃": "#06b6d4",
+    "Midjourney": "#111111", "Black Forest Labs": "#111111", "Ideogram": "#6366f1",
+    "Kuaishou 快手": "#FF6600", "Shengshu 生数": "#22d3ee", "Runway": "#4892DB",
+    "Luma": "#111111", "ElevenLabs": "#0f172a", "Cartesia": "#1B7A3D", "StepFun 阶跃": "#005AFF",
 }
 
 # 主要 AI 公司 → (别名关键词, 阵营)。阵营 region: "us"=美国 / "cn"=中国 / "eu"=欧洲公司（当前仅法国 Mistral，标题按其所属国家显示🇫🇷法国）；甘特图按阵营分块呈现，欧洲置底。
