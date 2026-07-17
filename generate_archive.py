@@ -1962,8 +1962,8 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
             // 官方透明 PNG favicon（base64 内联）：<image> 等比居中
             h+=`<image href="${L2.data}" xlink:href="${L2.data}" x="${lx}" y="${ly}" width="${lw}" height="${lh}" preserveAspectRatio="xMidYMid meet"/>`;
           } else {
-            // 官方 SVG 商标（Simple Icons 单色实底，按品牌色着色）
-            h+=`<svg x="${lx}" y="${ly}" width="${lw}" height="${lh}" viewBox="0 0 24 24" preserveAspectRatio="xMidYMid meet">${L2.svg}</svg>`;
+            // 官方 SVG 商标（保留原 viewBox，避免大坐标系图形被裁切为空白）
+            h+=`<svg x="${lx}" y="${ly}" width="${lw}" height="${lh}" viewBox="${L2.vb||'0 0 24 24'}" preserveAspectRatio="xMidYMid meet">${L2.svg}</svg>`;
           }
         } else {
           // 中性占位 ◇（灰色，非品牌色）：表示 Logo 暂缺，非正式品牌图标
@@ -2144,7 +2144,7 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
     function tipLogo(comp){
       const L2=COMPANY_LOGO[comp]; if(!L2) return "";
       if(L2.kind==="png") return `<img class="tt-logo" src="${L2.data}" alt="">`;
-      return `<svg class="tt-logo" viewBox="0 0 24 24" preserveAspectRatio="xMidYMid meet">${L2.svg}</svg>`;
+      return `<svg class="tt-logo" viewBox="${L2.vb||'0 0 24 24'}" preserveAspectRatio="xMidYMid meet">${L2.svg}</svg>`;
     }
     function eventTypeOf(j){ if(j.major) return "red"; if(versionTier(j.t)==="minor") return "green"; return "blue"; }
     function positionTip(ev){
@@ -2535,7 +2535,11 @@ def build_company_logo_js():
                 if not m:
                     continue
                 inner = m.group(1).strip()
-                out[comp] = {"kind": "svg", "wide": bool(wide), "svg": inner}
+                # 保留原 SVG 的 viewBox（如 Wikimedia 的 251×260 带偏移坐标），
+                # 避免内联时因写死 0 0 24 24 导致大坐标系图形被裁切为空白。
+                vb_m = _re.search(r"<svg[^>]*\bviewBox=[\"']([^\"']+)[\"']", txt, _re.I)
+                vb = vb_m.group(1) if vb_m else "0 0 24 24"
+                out[comp] = {"kind": "svg", "wide": bool(wide), "svg": inner, "vb": vb}
             except Exception:
                 continue
     return "const COMPANY_LOGO = " + json.dumps(out, ensure_ascii=False) + ";"
