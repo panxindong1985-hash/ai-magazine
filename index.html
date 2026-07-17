@@ -214,7 +214,7 @@
     <div id="archive"></div>
   </main>
   <footer>
-    <div>数据来源：<a href="https://aihot.virxact.com" target="_blank" rel="noopener noreferrer">AI HOT（aihot.virxact.com）</a> · 生成于 2026年07月17日 13:04</div>
+    <div>数据来源：<a href="https://aihot.virxact.com" target="_blank" rel="noopener noreferrer">AI HOT（aihot.virxact.com）</a> · 生成于 2026年07月17日 13:11</div>
     <div style="margin-top:6px">点击任意一期查看当日完整日报（含五版块与原文跳转）</div>
     <div style="margin-top:8px;opacity:.85">说明：本页已把每条新闻的标题、摘要、来源、日期<b>镜像保存到本地</b>；外部「原文」链接仅作溯源，即使链接失效或无法访问境外站点，已存档内容仍可正常查看。</div>
   </footer>
@@ -416,6 +416,7 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
   const stickyYears=document.getElementById("ganttStickyYears");
   const stickyYearsSvg=document.getElementById("ganttYearsSvg");
   const RATE_MIN=1250, RATE_MAX=1580;   // 评分条色阶范围（LMArena Elo，每日自动刷新）
+  const RATING_SOURCE_LABEL="LMArena · Arena Elo";  // 评分列顶部灰色标题：评分来源说明（LMArena 综合对话榜 Arena Elo，每日自动刷新）
   function bestRating(arr){ let r=-1; arr.forEach(m=>{ if(m.rating!=null && m.rating>r) r=m.rating; }); return r; }
 
   function visibleEvents(c){
@@ -562,6 +563,8 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
     // 2) 时间轴：内容加权列宽（稀疏年细、密集年宽）+ 顶部年份标签
     h+=`<rect x="0" y="0" width="${W}" height="${T}" fill="#ffffff"/>`;
     h+=`<line x1="0" y1="${T}" x2="${W}" y2="${T}" stroke="#e4e7ef" stroke-width="1"/>`;
+    // 评分列顶部灰色标题：说明评分来源（LMArena 综合对话榜 Arena Elo，每日自动刷新），右对齐正对每行评分数字
+    h+=`<text x="${(L-8).toFixed(1)}" y="${(T-4).toFixed(1)}" text-anchor="end" font-size="11" font-weight="700" fill="#6b7280">${RATING_SOURCE_LABEL}</text>`;
     BANDS.forEach((b,i)=>{
       const x0=xOfUnits(cumBeforeB[b.label]);            // 该分组列左边界
       const x1=xOfUnits(cumBeforeB[b.label]+bandUnits[b.label]); // 右边界
@@ -652,6 +655,8 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
     if(stickyYearsSvg){
       let yh=`<rect x="0" y="0" width="${W}" height="${T}" fill="#ffffff"/>`;
       yh+=`<line x1="0" y1="${T}" x2="${W}" y2="${T}" stroke="#e4e7ef" stroke-width="1"/>`;
+      // 评分来源灰色标题跟随：滚动时主 SVG 顶栏滚出视口，浮层同步显示该灰色标题（与年份/今天同一跟随机制）
+      yh+=`<text x="${(L-8).toFixed(1)}" y="${(T-4).toFixed(1)}" text-anchor="end" font-size="11" font-weight="700" fill="#6b7280">${RATING_SOURCE_LABEL}</text>`;
       BANDS.forEach((b,i)=>{
         const x0=xOfUnits(cumBeforeB[b.label]);
         const x1=xOfUnits(cumBeforeB[b.label]+bandUnits[b.label]);
