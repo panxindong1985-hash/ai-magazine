@@ -1277,8 +1277,15 @@ _X_EMBED_TAIL = re.compile(
 _X_EMBED_PRE = re.compile(
     r'(?:white-space:nowrap|number-flow|:host\(|will-change:transform|'
     r'\d{1,2}:\d{2}\s*·\s*20\d\d年|\d[\d.,万]+\s*(?:Views|次查看))')
+# X 嵌入 CSS 泄漏（确定性硬 chrome，绝不会出现在正文中）：任意位置出现即从此截断
+_X_EMBED_CSS = re.compile(r'(?:number-flow|:host[({]|will-change:transform|white-space:nowrap)')
+# X 嵌入推文分隔符：原文结构为 「{真实推文} / X Post Log in Sign up Post {handle} @{handle} {重复推文+UI}」。
+# 分隔符【之前】= X 初次渲染的真实推文（最干净，无 @handle UI、无 Log in Sign up）；
+# 分隔符【之后】= X 二次渲染的重复推文 + 平台 chrome。
+_X_EMBED_SEP = re.compile(
+    r'\s*/\s*X\s*(?:Post|帖子)\b(?:\s*Log\s*in\s+Sign\s*up)?(?:\s*Post)?', re.I)
+# （保留以下两个常量备用，避免其它调用点遗漏；当前统一由 _X_EMBED_SEP 处理）
 _X_EMBED_LEAD = re.compile(r'\S*\s*/\s*X\s*(?:Post|帖子)|X\s*(?:Post|帖子)\s*(?:Log\s*in|登录|发帖|Sign\s*up)')
-# 嵌入推文【头部】UI（真实正文在其之后）：如 "ClaudeDevs on X: \"…\" / X Post Log in Sign up Post @user Article <正文>"
 _X_EMBED_HEAD = re.compile(
     r'^.*?/\s*X\s*(?:Post|帖子)\b'
     r'(?:(?:\s+Log\s*in\s+Sign\s*up)?(?:\s+Post)?\s+@?\w+)*\s+(?:Article\s+)?',
@@ -1321,31 +1328,36 @@ def _strip_trailing_chrome(s):
         ext = _X_EMBED_PRE.search(pre)
         st = ext.start() if ext else m.start()
         s = s[:st].rstrip()
-    # (B) X 嵌入头部 UI（真实内容在其【之前】才截）：仅当标记前为可读正文、且标记后
-    #     基本为平台 chrome（无可读正文）时才保留 before 并丢弃 after——避免误删标记后
-    #     同样真实的推文正文（如「wrapper 引用 / X 帖子 重复推文 + 新公告」结构）。
-    lm = _X_EMBED_LEAD.search(s)
-    if lm:
-        before = s[:lm.start()].strip()
-        after = s[lm.end():].strip()
-        before_cjk = len(re.findall(r'[一-鿿]', before))
-        after_cjk = len(re.findall(r'[一-鿿]', after))
-        if before and before_cjk >= 10 and after_cjk < 10:
-            s = before
-    # (B2) 嵌入推文头部 UI 且真实正文在其【之后】（如 "ClaudeDevs on X: \"…\" / X Post Log in Sign up Post @user Article <正文>"）：
-    #      仅当嵌入标记【之前】为纯 handle/URL（无可读中文正文，如 "xxx on X: <url>"）时才从起始
-    #      嵌入 UI 块截断、保留其后真正正文；若标记前已是可读正文（如 "gabriel 在 X 上发文：\"…\""），
-    #      则不截断（保留全篇，避免误删标记前的真实引用）。并校验头块占比不过半、其后存在可读正文。
-    _xp = re.search(r'/\s*X\s*(?:Post|帖子)\b', s, re.I)
+    else:
+        # (A2) X 嵌入内联元数据：无 New to X? 页脚时
+        #   - 确定性硬 chrome（CSS 泄漏 number-flow/:host/white-space:nowrap）：绝不会出现在正文，
+        #     任意位置出现即从此截断；
+        #   - 软元数据（阅读数 次查看 / 时间戳）：仅当其出现在正文后段（>=45%）才截断，避免误伤。
+        mc = _X_EMBED_CSS.search(s)
+        if mc:
+            s = s[:mc.start()].rstrip()
+        else:
+            mp = _X_EMBED_PRE.search(s)
+            if mp and mp.start() >= len(s) * 0.45:
+                s = s[:mp.start()].rstrip()
+    # (B) X 嵌入推文分隔符处理：原文结构为 「{真实推文} / X Post Log in Sign up Post {handle} @{handle} {重复推文+UI}」。
+    #     分隔符【之前】= X 初次渲染的真实推文（最干净，无 @handle UI、无 Log in Sign up），保留之；
+    #     分隔符【之后】= X 二次渲染的重复推文 + 平台 chrome，丢弃之。
+    #     仅当「分隔符之前仅是 handle+URL 包装、真实正文在其后」时才反过来保留之后、并剥离前导 @handle/Article（B2 兜底）。
+    _xp = _X_EMBED_SEP.search(s)
     if _xp:
-        _before = s[:_xp.start()].strip()
-        if not _before or len(re.findall(r'[一-鿿]', _before)) < 10:
-            hm = _X_EMBED_HEAD.match(s)
-            if hm:
-                rest = s[hm.end():].strip()
-                has_real = (len(re.findall(r'[一-鿿]', rest)) >= 10) or (len(re.findall(r'[A-Za-z]{3,}', rest)) >= 25)
-                if hm.end() < len(s) * 0.6 and has_real:
-                    s = rest
+        _pre = s[:_xp.start()].strip()
+        _suf = s[_xp.end():].strip()
+        _q = re.search(r'on X:\s*"(.*?)"', _pre, re.I | re.S)
+        _is_wrapper = bool(_q and re.match(r'https?://\S*$', _q.group(1).strip())) or \
+                      bool(re.search(r'在\s*X\s*上发文[：:]\s*https?://', _pre))
+        if _is_wrapper:
+            _suf2 = re.sub(r'^@?[\w.\-]+(?:\s+@?[\w.\-]+)*\s+', '', _suf)
+            _suf2 = re.sub(r'^Article\s+', '', _suf2, flags=re.I).strip()
+            if _suf2:
+                s = _suf2
+        elif _pre:
+            s = _pre
     # (C) 文末订阅 / newsletter / 社交矩阵 CTA
     cm = _CTA_TAIL.search(s)
     if cm and cm.start() >= len(s) * 0.55:
