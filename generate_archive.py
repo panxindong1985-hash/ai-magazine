@@ -2412,6 +2412,148 @@ def build_day_record(date):
     lead = lead_map.get(date, "") or fallback_lead(present)
     return {"meta": meta, "sections": present, "lead": lead}
 
+
+# ---------- 3.05 今日实时 feed 补充（对齐 AI HOT 首页实时流） ----------
+def _beijing_date_of(iso):
+    """把 ISO(UTC, 可能带 Z) 转成北京时间 YYYY-MM-DD。"""
+    if not iso:
+        return ""
+    s = iso.replace("Z", "+00:00")
+    try:
+        dt = datetime.datetime.fromisoformat(s)
+    except Exception:
+        return iso[:10] if len(iso) >= 10 else ""
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=datetime.timezone.utc)
+    bj = dt.astimezone(datetime.timezone(datetime.timedelta(hours=8)))
+    return bj.strftime("%Y-%m-%d")
+
+
+# 主题标签/关键词 → 分栏（按列表先后定优先级；全部命中为 0 时归入最宽的「行业动态」）
+_SEC_KEYWORDS = [
+    ("模型发布/更新", ["模型发布", "开源生态", "端侧", "多模态", "具身智能", "数据/训练",
+                     "模型", "开源", "训练", "发布", "vla", "具身"]),
+    ("产品发布/更新", ["产品更新", "agent", "openai", "部署/工程", "开源/仓库", "语音",
+                     "工具", "应用", "产品", "api", "插件", "功能"]),
+    ("行业动态",     ["行业动态", "现象/趋势", "产业", "市场", "融资", "投资", "收购",
+                     "并购", "创投", "商业化", "合作", "招聘"]),
+    ("论文研究",     ["论文", "研究", "arxiv", "benchmark", "评测", "数据集"]),
+    ("技巧与观点",   ["观点", "分析", "评论", "教程", "技巧", "趋势", "思考", "解读"]),
+]
+
+
+def _classify_section(ai_tags, text):
+    joined = " ".join(ai_tags or "").lower() + " " + (text or "").lower()
+    best, best_score = "行业动态", 0
+    for label, kws in _SEC_KEYWORDS:
+        score = sum(1 for k in kws if k in joined)
+        if score > best_score:
+            best, best_score = label, score
+    return best
+
+
+def _norm_title(t):
+    return re.sub(r"\s+", "", (t or "").strip().lower())
+
+
+def _sec_color(label):
+    return next((c for l, c in SECTIONS if l == label), "#64748b")
+
+
+def merge_today_feed(arch, date=None):
+    """对齐 AI HOT 首页实时流：把『今天(北京)』发布的实时 feed 条目，按主题归入官方分栏。
+    - 绝不新建『今日精选』之类外来板块；官方分栏不足时按标签新建官方分栏（如『论文研究』）。
+    - 一次性清理：若当天存在非官方分栏（历史误加的），其条目按标题/标签重新归类后删除该分栏。
+    - 幂等：按 title/permalink 去重，重复运行不增不减。仅在 not RENDER_ONLY 时调用。"""
+    today = date or beijing_today_str()
+    if today not in arch:
+        return 0
+    rec = arch[today]
+
+    # 0) 清理非官方分栏（历史误加），将其条目重新归类进官方分栏
+    canon = {l for l, _ in SECTIONS}
+    sec_map = {s["label"]: s for s in rec.get("sections", [])}
+    for sec in list(rec.get("sections", [])):
+        if sec.get("label") in canon:
+            continue
+        for it in sec.get("items", []):
+            t = (it.get("title") or "") + " " + (it.get("summary") or "")
+            label = _classify_section([], t)
+            if label not in sec_map:
+                rec["sections"].append({"label": label, "color": _sec_color(label), "items": []})
+                sec_map[label] = rec["sections"][-1]
+            sec_map[label]["items"].append(it)
+        rec["sections"].remove(sec)
+        sec_map = {s["label"]: s for s in rec["sections"]}
+
+    # 1) 现有条目去重键
+    existing_pids, existing_titles = set(), set()
+    for sec in rec.get("sections", []):
+        for it in sec.get("items", []):
+            pid = traolid(it.get("permalink"))
+            if pid:
+                existing_pids.add(pid)
+            if it.get("title"):
+                existing_titles.add(_norm_title(it.get("title")))
+
+    # 2) 拉实时 feed
+    try:
+        feed = http_get_json(f"{BASE}/feed?take=100")
+    except Exception as e:
+        print(f"    ! 今日 feed 拉取失败({e})，跳过补充")
+        return 0
+
+    added = 0
+    for it in feed.get("items", []):
+        pub = it.get("publishedAt") or ""
+        if _beijing_date_of(pub) != today:
+            continue
+        pid = it.get("id")
+        if pid and pid in existing_pids:
+            continue
+        title = (it.get("titleZh") or it.get("title") or "").strip()
+        if _norm_title(title) in existing_titles:
+            continue
+        if not title:
+            continue
+        url = it.get("url") or ""
+        permalink = f"/items/{pid}" if pid else ""
+        src = ""
+        s = it.get("source") or {}
+        if isinstance(s, dict):
+            src = s.get("name") or ""
+        summary = (it.get("summaryZh") or it.get("summary") or "").strip()
+        ai_tags = [t.get("tag") for t in (it.get("aiTags") or []) if isinstance(t, dict)]
+        label = _classify_section(ai_tags, title + " " + summary)
+        if label not in sec_map:
+            rec["sections"].append({"label": label, "color": _sec_color(label), "items": []})
+            sec_map[label] = rec["sections"][-1]
+        target = sec_map[label]
+        item = {
+            "seq": len(target["items"]) + 1,
+            "title": title,
+            "source": src or "AI HOT",
+            "summary": truncate(summary, 220),
+            "url": url,
+            "permalink": permalink,
+            "publishedAt": pub,
+            "exact": True,
+            "zh": True,
+            "fromFeed": True,
+        }
+        item["content"] = fetch_content(url, pid if pid else None)
+        target["items"].append(item)
+        if pid:
+            existing_pids.add(pid)
+        existing_titles.add(_norm_title(title))
+        added += 1
+        print(f"    + 今日补充[{label}] {title[:36]}")
+    rec["meta"]["total"] = sum(len(s["items"]) for s in rec["sections"])
+    if added:
+        print(f"    · 今日({today}) 实时流补充 {added} 条")
+    return added
+
+
 new_added = 0
 today = beijing_today_str()
 if not RENDER_ONLY:
@@ -2448,6 +2590,11 @@ if not RENDER_ONLY:
         print(f"    ! 缺口补抓异常: {e}")
     save_archive(arch)
     print(f"    新增 {new_added} 期；累计 {len(arch)} 期")
+
+# ---------- 3.1 今日实时 feed 补充（对齐 AI HOT 首页实时流；含清理非官方分栏） ----------
+    n_feed = merge_today_feed(arch)
+    if n_feed:
+        save_archive(arch)
 
 # ---------- 3.5 全文镜像回填（仅补缺失/未本地化图片，已抓取的跳过） ----------
 if not RENDER_ONLY and not NO_BACKFILL:
