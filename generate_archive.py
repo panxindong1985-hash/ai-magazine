@@ -844,9 +844,77 @@ def _is_blocked_page(text, html):
         return True
     return False
 
-def fetch_content(url, cap=15000):
-    """抓取原文并抽取正文（纯文本归档：不下载/不内嵌图片）。
-    返回纯文本 Markdown 正文；失败返回空串。优先 trafilatura，缺失则降级正则。"""
+# AI HOT 反爬挑战 cookie（由其条目页 JS 挑战脚本确定性计算，固定值；用于服务端绕过墙直接取已清洗正文）
+_AIOHOT_CHALLENGE_CK = "__tst_status=3086345129#; EO_Bot_Ssid=1406074880;"
+_BODY_TAG = re.compile(r"<(?:li|p|h[1-6]|ul|ol|blockquote|pre|table|img|code|strong|em|a|br|div|span)[ >]", re.I)
+
+def _html_to_text(h):
+    """AI HOT 条目页渲染出的正文 HTML → 干净纯文本（保留段落/列表/标题结构）。"""
+    if not h:
+        return ""
+    h = re.sub(r"<h([1-6])[^>]*>", "\n\n", h, flags=re.I)
+    h = re.sub(r"</h[1-6]>", "\n", h, flags=re.I)
+    h = re.sub(r"<li[^>]*>", "\n- ", h, flags=re.I)
+    h = re.sub(r"</li>", "", h, flags=re.I)
+    h = re.sub(r"<(p|div|blockquote)[^>]*>", "\n", h, flags=re.I)
+    h = re.sub(r"</(p|div|blockquote)>", "\n", h, flags=re.I)
+    h = re.sub(r"<br\s*/?>", "\n", h, flags=re.I)
+    h = re.sub(r"<code[^>]*>", "`", h, flags=re.I)
+    h = re.sub(r"</code>", "`", h, flags=re.I)
+    h = re.sub(r"<[^>]+>", "", h)          # 去其余标签
+    h = html.unescape(h)
+    h = re.sub(r"[ \t]+\n", "\n", h)
+    h = re.sub(r"\n{3,}", "\n\n", h)
+    return h.strip()
+
+def fetch_aihot_body(pid):
+    """从 AI HOT 条目页（绕过反爬墙）抽取其回源归一化后的正文，返回纯文本；失败返回 None。
+    说明：AI HOT 的 title/summary 是机器翻译的中文，但正文 body 是其回源抓取的「原文」
+    （中文源=干净中文，英文源=干净英文）。这条正文比我们 trafilatura 直抓源站更干净、
+    无登录墙/页脚/导航等 chrome 噪声，可整体替代回源抓取。"""
+    if not pid or not re.match(r"^[A-Za-z0-9]+$", pid):
+        return None
+    url = f"https://aihot.virxact.com/items/{pid}"
+    req = urllib.request.Request(url, headers={
+        "User-Agent": _UA, "Cookie": _AIOHOT_CHALLENGE_CK,
+        "Accept-Language": "zh-CN,zh;q=0.9"})
+    try:
+        raw = urllib.request.urlopen(req, timeout=30, context=_SSL_CTX).read().decode("utf-8", "ignore")
+    except Exception:
+        return None
+    if "EO_Bot_Ssid" in raw and "__next_f" not in raw:
+        return None  # 仍被反爬墙拦截，放弃
+    chunks = re.findall(r"self\.__next_f\.push\(([\s\S]*?)\)\s*</script>", raw)
+    strs = []
+    for c in chunks:
+        try:
+            arr = json.loads(c)
+        except Exception:
+            m = re.match(r"\[\s*\d+\s*,\s*(\"(?:[^\"\\]|\\.)*\")", c)
+            if not m:
+                continue
+            arr = [1, json.loads(m.group(1))]
+        big = arr[1] if (len(arr) > 1 and isinstance(arr[1], str)) else ""
+        strs += re.findall(r"\"((?:[^\"\\]|\\.){15,})\"", big)
+    parts = []; seen = set()
+    for s in strs:
+        if _BODY_TAG.search(s) and len(s) > 30:
+            if s not in seen:
+                seen.add(s); parts.append(s)
+    if not parts:
+        return None
+    return _html_to_text("\n".join(parts))
+
+def fetch_content(url, permalink=None, cap=15000):
+    """抓取正文：优先用 AI HOT 自家已清洗的正文（无平台 chrome 噪声），
+    失败或过短再回源 trafilatura 抓原文。返回纯文本；失败返回空串。"""
+    # 1) 优先：AI HOT 已清洗正文（绕过反爬墙直接取回源归一化后的干净正文）
+    pid = traolid(permalink) if permalink else None
+    if pid:
+        aihot = fetch_aihot_body(pid)
+        if aihot and len(aihot.strip()) >= 80:
+            return aihot[:cap]
+    # 2) 回退：回源抓原文（trafilatura + 正则降级）
     if not url:
         return ""
     try:
@@ -954,7 +1022,7 @@ def backfill_content(arch, workers=8):
     print(f"[3.5] 回填全文镜像：{len(todos)} 条（并发 {workers}）...")
     done = 0
     ex = ThreadPoolExecutor(max_workers=workers)
-    futs = {ex.submit(fetch_content, it["url"]): it for it in todos}
+    futs = {ex.submit(fetch_content, it["url"], it.get("permalink")): it for it in todos}
     try:
         for f in as_completed(futs, timeout=120):
             it = futs[f]
@@ -2071,10 +2139,11 @@ def build_day_record(date):
                 "source": it.get("sourceName", "").strip() or "AI HOT",
                 "summary": truncate(it.get("summary", ""), 220),
                 "url": it.get("sourceUrl") or it.get("permalink") or "",
+                "permalink": it.get("permalink", ""),
                 "publishedAt": pub or (date + "T00:00:00.000Z"),
                 "exact": exact,
             }
-            item["content"] = fetch_content(item["url"])  # 新日期即时抓取全文
+            item["content"] = fetch_content(item["url"], pid if pid else None)  # 优先 AI HOT 已清洗正文
             ordered[label].append(item)
     total = sum(len(v) for v in ordered.values())
     present = [{"label": l, "color": c, "items": ordered[l]} for l, c in SECTIONS if ordered[l]]
