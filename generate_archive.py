@@ -3092,6 +3092,7 @@ INDEX_TPL = r"""<!DOCTYPE html>
   .tt-sep{color:var(--tooltip-muted);margin:0 3px}
   .tt-mname{color:var(--tooltip-text);font-weight:600}
   .tt-rating{margin-left:auto;font-weight:800;font-size:13px}
+  .tt-rating-code{margin-left:8px;font-weight:800;font-size:13px;color:#0ea5e9}
   .tt-caps{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}
   .tt-cap{padding:2px 7px;border-radius:6px;color:#cbd5e1;background:rgba(148,163,184,.12);
     font-size:11px;border:1px solid transparent}
@@ -3500,12 +3501,16 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
         if(capActive && !modelShown[m.company+"|"+m.name]) return;
         h+=`<rect class="grow" style="--mc:${m.color}" x="0" y="${y0.toFixed(1)}" width="${W}" height="${rowH}" fill="#ffffff"/>`;
         const vis=visibleEvents(m);
-        // 模型名（左）+ Arena Elo（同行靠右，品牌色；无评分显示「—」）
+        // 模型名（左）+ 综合 Elo（同行靠右；前缀「综合」小字灰 + 数字品牌色；无评分显示「—」）
         h+=`<text x="44" y="${(y0+17).toFixed(1)}" font-size="13" font-weight="600" fill="#1f2430">${escapeHtml(m.name)}</text>`;
-        h+=`<text x="${(L-12).toFixed(1)}" y="${(y0+17).toFixed(1)}" text-anchor="end" font-size="13" font-weight="800" fill="${m.color}">${m.rating==null?'—':m.rating}</text>`;
-        // 编码榜 Elo（综合行下方次级行，Coding 同色 #0ea5e9；无编码分显示「—」）
+        h+=`<text x="${(L-12).toFixed(1)}" y="${(y0+17).toFixed(1)}" text-anchor="end" font-size="13">`+
+           `<tspan fill="#9aa1b1" font-size="9" font-weight="600">综合 </tspan>`+
+           `<tspan fill="${m.color}" font-weight="800" font-size="13">${m.rating==null?'—':m.rating}</tspan></text>`;
+        // 编码榜 Elo（次级行，Coding 同色 #0ea5e9）：前缀「编码」小字青 + 数字青色加粗，与综合分清晰配对；无编码分显示「编码 —」
         const _rc = m.ratingCode;
-        h+=`<text x="${(L-12).toFixed(1)}" y="${(y0+33).toFixed(1)}" text-anchor="end" font-size="10" font-weight="700" fill="${_rc==null?'#c2c7d0':RATE_CODE_COLOR}">${_rc==null?'—':('码'+_rc)}</text>`;
+        h+=`<text x="${(L-12).toFixed(1)}" y="${(y0+33).toFixed(1)}" text-anchor="end" font-size="11">`+
+           `<tspan fill="${_rc==null?'#c2c7d0':'#0ea5e9'}" font-size="9" font-weight="600">编码 </tspan>`+
+           `<tspan fill="${_rc==null?'#c2c7d0':'#0ea5e9'}" font-weight="800" font-size="11">${_rc==null?'—':_rc}</tspan></text>`;
         // 能力标签：显示全部（取消最多 2 个限制），按固定顺序 Chat→Reasoning→Coding→Vision→Image→Video→Audio→Agent→LongContext；
         // main_cap 用公司品牌色轻量高亮（浅色底 + 品牌色描边 + 品牌色字），其余统一中性灰胶囊；一行放不下自动换行到第二行。
         let _tx=16, _trow=0;
@@ -3606,7 +3611,7 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
         const typeKey = e.major ? "red" : (tier==="minor" ? "green" : "blue");
         const col = typeKey==="green" ? GREEN : (typeKey==="red" ? MAJOR : BLUE);
         const j=JSON.stringify({t:e.title,d:e.date,k:e.kind,s:e.source,f:e.file,
-          comp:m.company, mn:m.name, mcap:m.main_cap, rating:m.rating, mreg:m.region, mcol:m.color, major:!!e.major})
+          comp:m.company, mn:m.name, mcap:m.main_cap, rating:m.rating, ratingCode:m.ratingCode, mreg:m.region, mcol:m.color, major:!!e.major})
           .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
         if(markerMode==="dot"){
           h+=`<g class="gev" data-j="${j}" style="cursor:pointer">`+
@@ -3706,7 +3711,8 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
           `<div class="tt-company">${tipLogo(j.comp)}`+
             `<span class="tt-cname" style="color:${j.mcol}">${escapeHtml(j.comp)}</span>`+
             `<span class="tt-sep">·</span><span class="tt-mname">${escapeHtml(j.mn)}</span>`+
-            (hasRating?`<span class="tt-rating" style="color:${j.mcol}">Arena ${j.rating}</span>`:"")+
+            (hasRating?`<span class="tt-rating" style="color:${j.mcol}">综合 ${j.rating}</span>`:"")+
+            (j.ratingCode!=null?`<span class="tt-rating-code">编码 ${j.ratingCode}</span>`:"")+
           `</div>`+
           (capHtml?`<div class="tt-caps">${capHtml}</div>`:"")+
           `<div class="tt-source">来源：${escapeHtml(src)}</div>`;
