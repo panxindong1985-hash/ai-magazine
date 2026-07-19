@@ -1,25 +1,29 @@
 name: 部署 AI资讯杂志
 
 on:
-  push:                     # 推送即部署（含本文件的本次推送也会触发）
+  push:
   schedule:
-    - cron: '30 0 * * *'   # UTC 00:30 = 北京时间 08:30，主抓取（避开 AI HOT 日报 00:00:39Z 生成的抢跑竞态）
-    - cron: '0 3 * * *'   # UTC 03:00 = 北京时间 11:00，二次兜底抓取，防早晨漏抓/发布延迟，零手动
-  workflow_dispatch:       # 也支持手动触发
+    # 每 2 小时一次（北京时间 02/04/06/08/10/12/14/16/18/20/22/00 的 :07 分）。
+    # 关键背景：GitHub Actions 定时任务跑在共享基础设施上，实测常延迟 6–9 小时甚至被跳过；
+    # 高频触发可自愈，配合 generate_archive.py 内置的「近 10 天缺口补抓」，保证不漏任何一天。
+    - cron: '7 */2 * * *'
+  workflow_dispatch:       # 也支持手动触发（Actions 页面 → Run workflow），用于即时补抓/重部署
 
 permissions:
   contents: write
   pages: write
   id-token: write
 
+# push 与 schedule 用不同并发组，且取消在途任务 = false：
+# 避免一次 push（很快）把正在跑的 schedule 抓取取消掉，从而导致当天漏抓。
 concurrency:
-  group: pages
-  cancel-in-progress: true
+  group: ai-magazine-${{ github.event_name }}
+  cancel-in-progress: false
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 30        # 防御：即使翻译端点异常，也最多跑 30 分钟，避免占满 6h 超时拖死更新
+    timeout-minutes: 30        # 防御：即使翻译端点异常，也最多跑 30 分钟，避免占满超时拖死更新
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -34,31 +38,33 @@ jobs:
       - name: Install dependencies
         run: pip install trafilatura
 
+      # 记录抓取前的期数，用于判断本次是否真正「新增了日期」
+      - name: 记录抓取前期数
+        id: before
+        run: echo "count=$(python -c "import json;print(len(json.load(open('archive.json'))))")" >> "$GITHUB_OUTPUT"
+
+      # 统一跑完整模式（增量抓取：已生成的天跳过，只补最近缺失的天；自动翻译+排版+渲染）。
+      # push 也走完整模式 -> 任何时候推送代码都会顺带自愈补抓缺失的最近几天。
       - name: Generate / update archive
         env:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
-        run: |
-          if [ "${{ github.event_name }}" = "push" ]; then
-            python generate_archive.py --render-only
-          else
-            python generate_archive.py
-          fi
+        run: python generate_archive.py
 
-      # schedule / 手动触发时，把抓取产生的新日报与更新后的 archive.json 提交回仓库，
-      # 否则新数据只存在于临时 runner、不会持久化，下次又从头抓取（甘特图无法自动更新）。
-      - name: Commit updated archive & dailies
-        if: ${{ github.event_name != 'push' }}
+      # 仅当「真正新增了日期」才提交并回推，避免渲染时间戳变化导致的无限循环：
+      # 新增当天 -> 提交一次 -> 触发的新一轮 run 看到日期已存在 -> 期数不变 -> 跳过提交 -> 循环自然终止。
+      - name: 统计新增期数并提交（如有）
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add archive.json index.html ai-daily.html ratings_cache.json
-          # 同时纳入可能新增的日报页
-          git add "ai-daily-*.html" 2>/dev/null || true
-          if git diff --cached --quiet; then
-            echo "无变化，跳过提交"
-          else
+          AFTER=$(python -c "import json;print(len(json.load(open('archive.json'))))")
+          echo "before=${{ steps.before.outputs.count }} after=$AFTER"
+          if [ "$AFTER" -gt "${{ steps.before.outputs.count }}" ]; then
+            git pull --rebase --autostash
+            git add archive.json index.html ai-daily.html "ai-daily-*.html" ratings_cache.json
             git commit -m "chore: 自动同步 AI HOT 日报（$(date -u +%Y-%m-%dT%H:%M:%SZ)）"
             git push
+          else
+            echo "无新增日期，跳过提交"
           fi
 
       - name: Setup Pages
