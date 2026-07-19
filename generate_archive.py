@@ -3148,7 +3148,8 @@ INDEX_TPL = r"""<!DOCTYPE html>
   <section class="gantt wrap">
     <div class="trend-head">
       <h2>🗓️ 主要 AI 公司 模型发布 / 版本更新 时间线</h2>
-      <p class="trend-sub">这张图追踪主要 AI 公司的模型发布与版本更新。横向是时间，纵向按美国、中国、法国分组，同一公司的不同模型系列排在一起，便于对比节奏。点状事件里，蓝色代表模型版本发布，绿色是产品更新，红色是较重磅的更新；可在上方按能力标签筛选，只看感兴趣的赛道。每个模型名称旁标注的是该系列在 LMArena 公开榜单上的 Arena Elo 分数（如无公开分数则显示「—」），每日自动同步。</p>
+      <p class="trend-sub">这张图追踪主要 AI 公司的模型发布与版本更新。横向是时间，纵向按美国、中国、法国分组，同一公司的不同模型系列排在一起，便于对比节奏。点状事件里，蓝色代表模型版本发布，绿色是产品更新，红色是较重磅的更新；可在上方按能力标签筛选，只看感兴趣的赛道。</p>
+      <p class="trend-sub">每个模型名称右侧并排标注两个 <b>Arena Elo</b> 评分（均来自盲测对战、每日自动同步，未进对应榜单则显示「—」）：<b style="color:#5b616e">综合</b>（左列，以各模型<b>品牌色</b>显示）取自 <b>LMArena 综合对话榜</b>，衡量聊天、推理、写作等<b>通用能力</b>；<b style="color:#0ea5e9">编码</b>（右列，统一<b>青色</b>）取自 <b>Arena.ai Code / 前端代码竞技场</b>，专测<b>前端代码生成</b>的盲测偏好。两者是<b>各自独立的标尺</b>（不同模型池与投票人），只宜各看各的相对高低，<b>不能直接横向比大小</b>。</p>
       <p class="trend-sub">模型下方的能力标签标注它擅长的方向，包括对话、推理、代码、视觉、图像、视频、语音、智能体、长文本等；其中<b>带高亮颜色的那一项是该模型的主要能力</b>，其余为辅助能力。</p>
     </div>
     <div class="gantt-ctrl">
@@ -3285,7 +3286,7 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
 (function(){
   const G=GANTT; if(!G.regions || !G.regions.length) return;
   const svg=document.getElementById("ganttChart");
-  const W=960,L=200,R=12,T=18,B=12,rowH=56;   // R 收敛为右侧留白；行高加大以容纳「模型名+Elo」与「能力标签（最多两行）」
+  const W=960,L=232,R=12,T=18,B=12,rowH=56;   // R 收敛为右侧留白；L 加宽以容纳「模型名 + 综合/编码 双评分并排」；行高容纳「名+评分」与「能力标签（最多两行）」
   // 国家仅作章节（弱化），公司才是视觉锚点；品牌色只点缀（3px 竖线 / Hover / Logo 描边）
   const REGION_LABEL={us:"🇺🇸 美国",cn:"🇨🇳 中国",eu:"🇫🇷 法国"};
   const FLAG={us:"🇺🇸",cn:"🇨🇳",eu:"🇫🇷"};
@@ -3396,8 +3397,13 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
   const stickyYears=document.getElementById("ganttStickyYears");
   const stickyYearsSvg=document.getElementById("ganttYearsSvg");
   const RATE_MIN=1250, RATE_MAX=1580;   // 评分条色阶范围（LMArena Elo，每日自动刷新）
-  const RATING_SOURCE_LABEL="LMArena · 综合/编码 Elo";  // 评分列顶部灰色标题：综合对话榜 + Code/Frontend Code Arena 编码榜，均每日自动刷新
   const RATE_CODE_COLOR="#0ea5e9";      // 编码榜 Elo 数字颜色（与 Coding 能力标签同色 #0ea5e9）
+  const RATE_OVR_COLOR="#6b7280";       // 综合榜列标题颜色（中性灰；行内数字用各模型品牌色）
+  // 两个评分「并排双列」的右边界 x（数字右对齐于此）：编码列在最右(L-10)，综合列在其左(L-56)。
+  // 行内只显示两个色彩区分的数字，「综合/编码」的含义交给列顶标题说明，避免行内文字拥挤。
+  const RX_COD = L-10;                   // 编码 Elo 数字右边界（最右列）
+  const RX_OVR = L-56;                   // 综合 Elo 数字右边界（左列）
+  const NAME_MAX_W = RX_OVR - 30 - 44;   // 模型名最大像素宽（超出截断加…），确保绝不与评分列重叠
   function bestRating(arr){ let r=-1; arr.forEach(m=>{ if(m.rating!=null && m.rating>r) r=m.rating; }); return r; }
 
   function visibleEvents(c){
@@ -3501,16 +3507,20 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
         if(capActive && !modelShown[m.company+"|"+m.name]) return;
         h+=`<rect class="grow" style="--mc:${m.color}" x="0" y="${y0.toFixed(1)}" width="${W}" height="${rowH}" fill="#ffffff"/>`;
         const vis=visibleEvents(m);
-        // 模型名（左）+ 综合 Elo（同行靠右；前缀「综合」小字灰 + 数字品牌色；无评分显示「—」）
-        h+=`<text x="44" y="${(y0+17).toFixed(1)}" font-size="13" font-weight="600" fill="#1f2430">${escapeHtml(m.name)}</text>`;
-        h+=`<text x="${(L-12).toFixed(1)}" y="${(y0+17).toFixed(1)}" text-anchor="end" font-size="13">`+
-           `<tspan fill="#9aa1b1" font-size="9" font-weight="600">综合 </tspan>`+
-           `<tspan fill="${m.color}" font-weight="800" font-size="13">${m.rating==null?'—':m.rating}</tspan></text>`;
-        // 编码榜 Elo（次级行，Coding 同色 #0ea5e9）：前缀「编码」小字青 + 数字青色加粗，与综合分清晰配对；无编码分显示「编码 —」
+        // 模型名（左，超宽截断加…以确保绝不压到右侧评分列；完整名仍在 Tooltip 中）
+        let _dn="", _dnAcc=0, _truncated=false;
+        for(const ch of (m.name||"")){
+          const cw=/[\u3000-\u9fff\uff00-\uffef]/.test(ch)?13:7.2;
+          if(_dnAcc+cw>NAME_MAX_W){ _dn+="…"; _truncated=true; break; }
+          _dn+=ch; _dnAcc+=cw;
+        }
+        h+=`<text x="44" y="${(y0+17).toFixed(1)}" font-size="13" font-weight="600" fill="#1f2430">${escapeHtml(_dn)}`+
+           (_truncated?`<title>${escapeHtml(m.name)}</title>`:``)+`</text>`;
+        // 综合 / 编码 双评分「并排」：同在模型名一行、靠右两列（综合=品牌色、编码=青色），
+        // 从而彻底避开下方能力标签行（原编码分放在标签行上易被遮挡）。含义由列顶标题标注。
         const _rc = m.ratingCode;
-        h+=`<text x="${(L-12).toFixed(1)}" y="${(y0+33).toFixed(1)}" text-anchor="end" font-size="11">`+
-           `<tspan fill="${_rc==null?'#c2c7d0':'#0ea5e9'}" font-size="9" font-weight="600">编码 </tspan>`+
-           `<tspan fill="${_rc==null?'#c2c7d0':'#0ea5e9'}" font-weight="800" font-size="11">${_rc==null?'—':_rc}</tspan></text>`;
+        h+=`<text x="${RX_OVR.toFixed(1)}" y="${(y0+17).toFixed(1)}" text-anchor="end" font-size="13" font-weight="800" fill="${m.rating==null?'#c2c7d0':m.color}">${m.rating==null?'—':m.rating}</text>`;
+        h+=`<text x="${RX_COD.toFixed(1)}" y="${(y0+17).toFixed(1)}" text-anchor="end" font-size="13" font-weight="800" fill="${_rc==null?'#c2c7d0':RATE_CODE_COLOR}">${_rc==null?'—':_rc}</text>`;
         // 能力标签：显示全部（取消最多 2 个限制），按固定顺序 Chat→Reasoning→Coding→Vision→Image→Video→Audio→Agent→LongContext；
         // main_cap 用公司品牌色轻量高亮（浅色底 + 品牌色描边 + 品牌色字），其余统一中性灰胶囊；一行放不下自动换行到第二行。
         let _tx=16, _trow=0;
@@ -3551,8 +3561,11 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
     // 2) 时间轴：内容加权列宽（稀疏年细、密集年宽）+ 顶部年份标签
     h+=`<rect x="0" y="0" width="${W}" height="${T}" fill="#ffffff"/>`;
     h+=`<line x1="0" y1="${T}" x2="${W}" y2="${T}" stroke="#e4e7ef" stroke-width="1"/>`;
-    // 评分列顶部灰色标题：说明评分来源（LMArena 综合对话榜 Arena Elo，每日自动刷新），右对齐正对每行评分数字
-    h+=`<text x="${(L-8).toFixed(1)}" y="${(T-4).toFixed(1)}" text-anchor="end" font-size="11" font-weight="700" fill="#6b7280">${RATING_SOURCE_LABEL}</text>`;
+    // 评分双列顶部标题：左列「综合」(灰) + 右列「编码」(青)，分别正对下方两列数字，用颜色/文字区分两个榜单；
+    // 最左小字「Arena Elo」点明两列均为 Arena Elo 评分（每日自动刷新，详见图上方说明）。
+    h+=`<text x="${(RX_OVR-32).toFixed(1)}" y="${(T-4).toFixed(1)}" text-anchor="end" font-size="9" font-weight="600" fill="#aab0bd">Arena Elo</text>`;
+    h+=`<text x="${RX_OVR.toFixed(1)}" y="${(T-4).toFixed(1)}" text-anchor="end" font-size="10.5" font-weight="800" fill="${RATE_OVR_COLOR}">综合</text>`;
+    h+=`<text x="${RX_COD.toFixed(1)}" y="${(T-4).toFixed(1)}" text-anchor="end" font-size="10.5" font-weight="800" fill="${RATE_CODE_COLOR}">编码</text>`;
     BANDS.forEach((b,i)=>{
       const x0=xOfUnits(cumBeforeB[b.label]);            // 该分组列左边界
       const x1=xOfUnits(cumBeforeB[b.label]+bandUnits[b.label]); // 右边界
@@ -3643,8 +3656,10 @@ function escapeHtml(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
     if(stickyYearsSvg){
       let yh=`<rect x="0" y="0" width="${W}" height="${T}" fill="#ffffff"/>`;
       yh+=`<line x1="0" y1="${T}" x2="${W}" y2="${T}" stroke="#e4e7ef" stroke-width="1"/>`;
-      // 评分来源灰色标题跟随：滚动时主 SVG 顶栏滚出视口，浮层同步显示该灰色标题（与年份/今天同一跟随机制）
-      yh+=`<text x="${(L-8).toFixed(1)}" y="${(T-4).toFixed(1)}" text-anchor="end" font-size="11" font-weight="700" fill="#6b7280">${RATING_SOURCE_LABEL}</text>`;
+      // 评分双列标题跟随：滚动时主 SVG 顶栏滚出视口，浮层同步显示「综合(灰)/编码(青)」双列标题
+      yh+=`<text x="${(RX_OVR-32).toFixed(1)}" y="${(T-4).toFixed(1)}" text-anchor="end" font-size="9" font-weight="600" fill="#aab0bd">Arena Elo</text>`;
+      yh+=`<text x="${RX_OVR.toFixed(1)}" y="${(T-4).toFixed(1)}" text-anchor="end" font-size="10.5" font-weight="800" fill="${RATE_OVR_COLOR}">综合</text>`;
+      yh+=`<text x="${RX_COD.toFixed(1)}" y="${(T-4).toFixed(1)}" text-anchor="end" font-size="10.5" font-weight="800" fill="${RATE_CODE_COLOR}">编码</text>`;
       BANDS.forEach((b,i)=>{
         const x0=xOfUnits(cumBeforeB[b.label]);
         const x1=xOfUnits(cumBeforeB[b.label]+bandUnits[b.label]);
