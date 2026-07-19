@@ -802,6 +802,48 @@ try:
 except Exception:
     _HAVE_TRAF = False
 
+# ---------- 反爬墙/登录墙/空页 识别 ----------
+# AI HOT 等站点对条目页做了 JS 人机验证（如 EO_Bot_Ssid / __tst_status cookie +
+# location.href 自动重载），服务端无 JS 引擎，只能抓到挑战脚本而非正文；GitHub
+# Releases 等登录态页面还会回吐"您已在另一个标签页或窗口中登录"之类干扰文案。
+# 这类响应必须判废，回退到 AI HOT 的干净摘要，绝不能作为正文入库。
+_BLOCK_HTML = [
+    "EO_Bot_Ssid", "__tst_status", "location.href=location.href.replace",
+    "Just a moment", "Checking your browser before accessing",
+    "Verify you are human", "enable JavaScript and cookies to continue",
+    "DDoS-Guard", "cf-chl", "captcha", "are you a robot",
+]
+# 高置信文本标记：专属于登录墙/反爬挑战，几乎不可能出现在正常文章中，无视长度直接判废
+_BLOCK_TEXT_STRONG = [
+    "您已在另一个标签页或窗口中登录", "请重新加载以刷新会话",
+    "请启用 javascript 和 cookie", "请输入验证码", "安全验证", "请完成安全验证",
+]
+# 低置信文本标记：正常长文中偶现（如讨论 CAPTCHA/权限的报道），仅在正文很短时判废
+_BLOCK_TEXT_WEAK = [
+    "confirm you are human", "checking your browser",
+    "enable javascript and cookies", "access denied", "verify you are human",
+]
+def _is_blocked_page(text, html):
+    """命中反爬挑战/登录墙/空页 → True（这类不应作为正文入库）。"""
+    low = (html or "").lower()
+    for m in _BLOCK_HTML:
+        if m.lower() in low:
+            return True
+    t = (text or "").strip()
+    tl = t.lower()
+    for m in _BLOCK_TEXT_STRONG:
+        if m.lower() in tl:
+            return True
+    # 弱标记仅在正文很短时判废，避免长文偶现 "access denied" 等词被误杀
+    if len(t) < 600:
+        for m in _BLOCK_TEXT_WEAK:
+            if m.lower() in tl:
+                return True
+    # 结构判断：原始页很大但抽出的正文极少（典型挑战页/登录墙）
+    if t and len(t) < 60 and len(html or "") > 3000:
+        return True
+    return False
+
 def fetch_content(url, cap=15000):
     """抓取原文并抽取正文（纯文本归档：不下载/不内嵌图片）。
     返回纯文本 Markdown 正文；失败返回空串。优先 trafilatura，缺失则降级正则。"""
@@ -832,7 +874,27 @@ def fetch_content(url, cap=15000):
         text = re.sub(r"\s+", " ", text).strip()
     if not text:
         return ""
+    if _is_blocked_page(text, html):
+        return ""
     return reformat_content(clean_menu_noise(text))[:cap]
+
+def purge_blocked_content(arch, save=False):
+    """清理已入库但实为反爬/登录墙的正文，回退到摘要。返回清理条数。"""
+    n = 0
+    for d in arch.values():
+        if not isinstance(d, dict):
+            continue
+        for sec in d.get("sections", []) or []:
+            for it in sec.get("items", []) or []:
+                c = (it.get("content") or "")
+                if c and _is_blocked_page(c, ""):
+                    print(f"    · 清理爬虫墙正文: {it.get('title', '')[:42]}")
+                    it["content"] = ""
+                    n += 1
+    if n and save:
+        save_archive(arch)
+        print(f"    [purge] 共清理 {n} 条爬虫墙正文")
+    return n
 
 IMG_CAP = 6                      # 每篇最多下载前 6 张图
 IMG_MAX_BYTES = 2 * 1024 * 1024  # 单图上限 2MB，超出跳过（保留外链）
@@ -1476,7 +1538,7 @@ def _strip_news_chrome(s):
             pos = p
         if pos < 0:
             # 兜底：跳过"跳至内容 + 导航菜单"后，首个 ≥30 CJK 字符且以句号结束的成句
-            m = re.search(r'跳至内容.*?([\u4e00-\u9fff][\u4e00-\u9fff，、；：""''（）%\d]{29,}?。)', s, re.S)
+            m = re.search(r"跳至内容.*?([\u4e00-\u9fff][\u4e00-\u9fff，、；：\"\"''（）%\d]{29,}?。)", s, re.S)
             if m:
                 pos = m.start(1)
         if pos > 0:
@@ -1527,7 +1589,7 @@ def _strip_header_product_matrix(s):
         return s[m.end():].strip()
     # 兜底：从首个完整长句开始（≥25 CJK，含主谓或发布类动词）
     fallback = re.search(
-        r'[\u4e00-\u9fff][\u4e00-\u9fff，、；：""''（）%\d\-/\s]{24,}(?:。|——|！|？)',
+        r"[\u4e00-\u9fff][\u4e00-\u9fff，、；：\"\"''（）%\d/\s-]{24,}(?:。|——|！|？)",
         s)
     if fallback:
         return s[fallback.start():].strip()
@@ -1944,6 +2006,7 @@ def save_archive(arch):
 
 # ---------- 1. 取全部可用日期列表（含头条标题） ----------
 arch = load_archive()
+purge_blocked_content(arch, save=True)   # 所有模式：先清理已入库的爬虫墙/登录墙正文
 init_live_ratings()   # 载入/刷新 LMArena Elo 评分缓存（--render-only 仅载入，不联网）
 if RENDER_ONLY:
     print(f"[1] 仅渲染模式：跳过列表抓取，直接使用本地归档（共 {len(arch)} 期）")
