@@ -1860,6 +1860,257 @@ def _reformat_paragraphs(s):
     return '\n\n'.join(result)
 
 
+# ---- 更强清理：站点页脚/导航墙、图片版权署名、孤立广告/Markdown 图片行、零宽字符 ----
+# 这些残噪 trafilatura 直抓源站时偶发带入，常规 _strip_*_chrome 漏抓，故在此补一层。
+_IMG_CREDIT = re.compile(
+    r'(?i)^\s*(?:image credits?|image credit|image via|photo by|photograph:|'
+    r'screenshot:?|图源[:：]|图片来源[:：]|图[:：]|配图[:：]|via[:：])\b')
+_AD_LABEL = re.compile(r'(?i)^\s*(?:advertisement|advert|ad|sponsored|promoted|advertorial)\b\s*(?:continue reading)?\s*$')
+_MD_IMG = re.compile(r'^\s*!\[[^\]]*\]\([^)]*\)\s*$')
+_MD_EMPTY_LINK = re.compile(r'^\s*\[\]\([^)]*\)\s*$')
+_WS = re.compile(r'[\u00a0\u200b\u2060]')
+
+
+def _strip_site_nav_chrome(s):
+    """剥离站点页脚 footer 与开头站点导航墙（如 OpenAI 博客「标题 | OpenAI Skip to main
+    content <nav> (opens in a new window)」头部 + 尾部整块 footer）。仅截断，前后均保留真实
+    文章，不误伤正文。"""
+    if not s:
+        return s
+    L = len(s)
+    cut = None
+    # 1) 尾部 footer：连续密集的 "(opens in a new window)" 链接块（站点导航墙）。
+    #    找最长「相邻 opens 间距 <= max_gap」的连续运行，其起点即 footer 起点；
+    #    该运行通常远大于正文内零散的引用链接，可精准切除整块 nav 而不误伤。
+    opens = [m.start() for m in re.finditer(r'\(opens in a new window\)', s)]
+    if opens:
+        best_start = 0
+        best_len = 0
+        i = 0
+        n = len(opens)
+        while i < n:
+            j = i
+            while j + 1 < n and opens[j + 1] - opens[j] <= 140:
+                j += 1
+            run = j - i + 1
+            if run > best_len:
+                best_len = run
+                best_start = i
+            i = j + 1
+        # footer 须位于后半部分，且为一长串密集链接（>=6）
+        if best_len >= 6 and opens[best_start] >= L * 0.35:
+            cut = opens[best_start]
+    # 2) HARD 锚点兜底（版权/隐私/法律链接），取最早 >=25%
+    _HARD = re.compile(
+        r'(?i)(OpenAI ©|Anthropic ©|Google ©|Microsoft ©|Meta ©|'
+        r'Your privacy choices|Terms of Use Privacy Policy|'
+        r'Company\s+About Us\s+Our Charter)')
+    for m in _HARD.finditer(s):
+        if m.start() >= L * 0.25:
+            cut = m.start() if cut is None else min(cut, m.start())
+            break
+    if cut is not None:
+        s = s[:cut].rstrip()
+        s = s.replace("\u2060", " ")
+        s = re.sub(r'[ \t]*\|[ \t]*$', '', s)
+        s = re.sub(r'[ \t]*learn more\s*$', '', s, flags=re.I)
+        s = re.sub(r'[ \t]*openai\s*$', '', s, flags=re.I)
+        s = re.sub(r'[ \t]*anthropic\s*$', '', s, flags=re.I)
+        s = re.sub(r'[ \t]*keep\s*$', '', s, flags=re.I)
+        s = s.rstrip()
+    # 3) 开头 leading nav："{标题} | OpenAI Skip to main content <nav> (opens in a new window)"
+    #    nav 运行内无句子标点，止于首个 "(opens in a new window)" 之后、且位于首个句子结束标点之前。
+    lm = re.search(r'(?i)(?:OpenAI|Anthropic)\s+Skip to main content', s)
+    if lm and lm.start() <= len(s) * 0.30:
+        first_dot = len(s)
+        md = re.search(r'[.!?]\s', s[lm.start():])
+        if md:
+            first_dot = lm.start() + md.start()
+        last_open = -1
+        for om in re.finditer(r'\(opens in a new window\)', s[lm.start():first_dot]):
+            last_open = lm.start() + om.end()
+        if last_open > lm.start():
+            prefix = s[:lm.start()].rstrip()
+            prefix = re.sub(r'[ \t]*\|[ \t]*$', '', prefix)
+            suffix = s[last_open:].lstrip()
+            s = (prefix + "\n\n" + suffix) if prefix else suffix
+    return s
+
+
+_NAV_TOKENS = re.compile(
+    r'(?i)^(research|researches|index|overview|economic|latest|advancement|'
+    r'safety|approach|deployment|product|products|solution|solutions|resource|'
+    r'resources|company|about|charter|career|careers|news|support|help|center|'
+    r'privacy|policy|policies|term|terms|developer|developers|forum|academy|'
+    r'stories|story|podcast|rss|platform|api|login|log|cookie|menu|home|'
+    r'contact|service|services|footer|sitemap|language|region|subscribe|'
+    r'newsletter|more|related|topics|categories|tags)$')
+
+
+def _tok_is_nav(tok):
+    if not tok:
+        return False
+    if _NAV_TOKENS.match(tok):
+        return True
+    if re.match(r'^[A-Z][A-Za-z0-9.\-]+$', tok):   # titlecase / 版本号式 (GPT-5.6)
+        return True
+    if re.match(r'^\d+(?:\.\d+)*$', tok):          # 纯数字 / 版本号 (5.6, 2026)
+        return True
+    return False
+
+
+def _strip_plain_nav_tail(s):
+    """剥离尾部『无 (opens) 的纯文本站点导航』（OpenAI 博客 footer 前的
+    'Research Index Research Overview Economic Research Latest Advancements
+    GPT-5.6 GPT-5.5 GPT-5. 4 Safety Approach Deployment Safety' 之类）。
+    保守：仅当尾部存在一段 >=6 个连续 nav token、其中 >=2 个命中已知导航词、
+    且位于后半部分、无句末标点 / 无 CJK 时切除。"""
+    if not s:
+        return s
+    L = len(s)
+    start = max(0, int(L * 0.55))
+    tail = s[start:]
+    toks = tail.split()
+    # 从末尾向前找最长连续 nav token 运行
+    i = len(toks) - 1
+    run_start = i + 1
+    while i >= 0:
+        if _tok_is_nav(toks[i]):
+            run_start = i
+            i -= 1
+        else:
+            break
+    run = toks[run_start:]
+    if len(run) < 6:
+        return s
+    curated = sum(1 for t in run if _NAV_TOKENS.match(t))
+    if curated < 2:
+        return s
+    nav_text = " ".join(run)
+    if re.search(r'[\u4e00-\u9fff]', nav_text):
+        return s
+    idx = tail.rfind(nav_text)
+    if idx == -1:
+        return s
+    cut = start + idx
+    s = s[:cut].rstrip()
+    s = re.sub(r'[ \t]*\|[ \t]*$', '', s)
+    s = s.rstrip()
+    return s
+
+
+_REL_SECTION = re.compile(
+    r'(?i)\b(company|research|safety|global affairs|economic|products?|news|'
+    r'policy|policies|trust|education|developers?|frontier|social|integrations?|'
+    r'engineering|media|communications|approach|deployment|overview|index)\s+'
+    r'[A-Z][a-z]{2,9} \d{1,2}, \d{4}')
+
+
+def _strip_related_stories(s):
+    """剥离尾部『相关阅读 / More Stories』widget（OpenAI/Anthropic 博客文末的
+    '标题 栏目 月 日, 年' 重复条目，如 'A scorecard for the AI age Company Jul 17,
+    2026 Why teens deserve access to safe AI Safety Jul 16, 2026 ...'）。
+    保守：仅当尾部存在 >=2 个『栏目+日期』条目且相距 < 700 字时切除，并向前吞掉
+    可能的 'Keep reading / More / Related' 前导标签。"""
+    if not s:
+        return s
+    L = len(s)
+    region_start = int(L * 0.45)
+    region = s[region_start:]
+    ms = list(_REL_SECTION.finditer(region))
+    if len(ms) < 2:
+        return s
+    d1, d2 = ms[-2], ms[-1]
+    if d2.start() - d1.start() > 700:
+        return s
+    # widget 起点：第一个条目『栏目』之前的故事标题起点
+    seg = region[:d1.start()]
+    window = seg[-260:] if len(seg) >= 260 else seg
+    m = list(re.finditer(r'[\n|]|\.\s|\.\n|\!\s|\?\s', window))
+    if m:
+        boundary_off = (len(seg) - len(window)) + m[-1].end()
+        cut_in_region = boundary_off
+    else:
+        cut_in_region = max(0, d1.start() - 200)
+    # 再向前吞掉可能的 "Keep reading / More / Related / View all" 前导标签
+    pre = region[:cut_in_region]
+    mlab = re.search(
+        r'(?:^|[\n|])\s*(keep reading|more stories|more|related|you may also like|'
+        r'view all|read more|see all|keep exploring)\s*[:|\-]?\s*$', pre, flags=re.I)
+    if mlab:
+        cut_in_region = mlab.start()
+    cut = region_start + cut_in_region
+    s = s[:cut].rstrip()
+    s = re.sub(r'[ \t]*\|[ \t]*$', '', s)
+    s = s.rstrip()
+    return s
+
+
+def _strip_image_credit(s):
+    """删除图片版权/来源署名行（"Image Credits:Google (screenshot)" / "图源：台积电" 等）。
+    判定：短行(<=200)、无句末标点、且整行去除信用词后仅剩短来源标识(<=60字) → 视为署名行删除。
+    长行（如内嵌图注"▲ 图源：台积电 对于今年…"）保留，避免误删正文。"""
+    if not s:
+        return s
+    out = []
+    for ln in s.split("\n"):
+        t = ln.strip()
+        if not t:
+            out.append(ln); continue
+        if (_IMG_CREDIT.search(t) and len(t) <= 200
+                and not re.search(r'[.!?。！？]', t)):
+            stripped = _IMG_CREDIT.sub('', t)
+            stripped = _WS.sub('', stripped).strip(' :：\t')
+            if len(stripped) <= 60:
+                continue
+        out.append(ln)
+    return "\n".join(out)
+
+
+def _strip_junk_lines(s):
+    """删除孤立广告/赞助标签行与残留 Markdown 图片/空链接行。"""
+    if not s:
+        return s
+    out = []
+    for ln in s.split("\n"):
+        t = ln.strip()
+        if not t:
+            out.append(ln); continue
+        if _AD_LABEL.match(t) and len(t) <= 60:
+            continue
+        if _MD_IMG.match(t) or _MD_EMPTY_LINK.match(t):
+            continue
+        out.append(ln)
+    return "\n".join(out)
+
+
+def _normalize_text(s):
+    """零宽/不换行空格归一、合并多余空行。不删标签（避免误伤代码中的 < >）。"""
+    if not s:
+        return s
+    s = _WS.sub(lambda m: ' ' if m.group(0) == '\u00a0' else '', s)
+    s = re.sub(r'[ \t]+\n', '\n', s)
+    s = re.sub(r'\n{3,}', '\n\n', s)
+    return s.strip()
+
+
+def deep_clean_extra(s):
+    """对 trafilatura 残留正文做更强清理（站点页脚/导航墙、图片署名、广告/Markdown 图片行、零宽字符）。
+    幂等、保守；删除后若正文长度 < 原长 50% 且原长 > 200，则回退保留原文以防误伤。"""
+    if not s or not s.strip():
+        return s
+    orig = s
+    s = _strip_site_nav_chrome(s)
+    s = _strip_plain_nav_tail(s)
+    s = _strip_related_stories(s)
+    s = _strip_image_credit(s)
+    s = _strip_junk_lines(s)
+    s = _normalize_text(s)
+    if len(orig) > 200 and len(s) < 0.5 * len(orig):
+        return orig   # 疑似误伤，回退保留原文
+    return s
+
+
 def reformat_content(s):
     """内容重排版：深度清理平台噪声、去重复、规范化段落结构。幂等安全。
     - HTML entity 解码（&gt; / &nbsp; 等）
@@ -1882,6 +2133,8 @@ def reformat_content(s):
     s = _strip_formula_noise(s)
     # 1.5 剥离 X/Twitter 嵌入推文平台 chrome 与文末订阅 CTA
     s = _strip_trailing_chrome(s)
+    # 1.55 更强清理：站点页脚/导航墙、图片版权署名、孤立广告/Markdown 图片行、零宽字符
+    s = deep_clean_extra(s)
     # 2. 清理 X/Twitter 嵌入推文中的 UI 与重复推文
     s = _strip_x_embed_repeat(s)
     # 3. 段落级去重（忽略空白后的完全重复）
