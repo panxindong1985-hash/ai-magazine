@@ -1,19 +1,19 @@
 {
-  "updated_at": 1784693302,
+  "updated_at": 1784696837,
   "ratings": {
-    "GPT": 1633,
-    "Claude": 1636,
-    "Gemini": 1504,
-    "Grok": 1556,
-    "通义千问 Qwen": 1516,
-    "智谱 GLM": 1593,
-    "Seed": 1531,
-    "Kimi": 1677,
-    "星火": 1540,
+    "GPT": 1630,
+    "Claude": 1634,
+    "Gemini": 1537,
+    "Grok": 1557,
+    "通义千问 Qwen": 1515,
+    "智谱 GLM": 1592,
+    "Seed": 1530,
+    "Kimi": 1678,
+    "星火": 1539,
     "Gemma": 1367,
     "DeepSeek 系列": 1459,
     "混元": 1362,
     "Mistral 系列": 1267,
-    "MiniMax 系列": 1492
+    "MiniMax 系列": 1491
   }
 }
