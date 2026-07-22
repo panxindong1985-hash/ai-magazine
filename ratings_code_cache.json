@@ -1,9 +1,5 @@
 {
-<<<<<<< Updated upstream
-  "updated_at": 1784751617,
-=======
-  "updated_at": 1784751715,
->>>>>>> Stashed changes
+  "updated_at": 1784754433,
   "ratings": {
     "GPT": 1630,
     "Claude": 1634,
@@ -13,11 +9,7 @@
     "智谱 GLM": 1592,
     "Seed": 1530,
     "Kimi": 1678,
-    "星火": 1539,
-    "Gemma": 1367,
-    "DeepSeek 系列": 1459,
-    "混元": 1362,
-    "Mistral 系列": 1267,
-    "MiniMax 系列": 1491
+    "MiniMax 系列": 1491,
+    "星火": 1539
   }
 }
